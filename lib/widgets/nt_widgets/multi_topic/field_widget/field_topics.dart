@@ -62,10 +62,12 @@ class VisionTopics {
   // late final SubscribedTopic<bool> farCamHeading;
 
   //late final SubscribedTopic<List<double>> _target_pose;
-  late final SubscribedTopic<List<dynamic>> dtarget_pose;//THIS! THIS WORKS
+  late final SubscribedTopic<List<dynamic>> main_tag;//THIS! THIS WORKS
+  late final SubscribedTopic<List<dynamic>> All_tags;//THIS! THIS WORKS
+  late final SubscribedTopic<List<dynamic>> camera_data;
 
-  
-  NT4Subscription get subscription => dtarget_pose.subscription;
+
+  NT4Subscription get subscription => main_tag.subscription;
 
   late final List<SubscribedTopic> topics;
 
@@ -75,113 +77,32 @@ class VisionTopics {
     //   topic: '/Match/Pose/CloseCamX',
     //   defaultValue: 0.0,
     // );
-    // closeCamY = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/Match/Pose/CloseCamY',
-    //   defaultValue: 0.0,
-    // );
-    // farCamX = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/SmartDashboard/LogData/LL/limelight-one/pos/X',
-    //   defaultValue: 0.0,
-    // );
-    // farCamY = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/SmartDashboard/LogData/LL/limelight-one/pos/Y',
-    //   defaultValue: 0.0,
-    // );
-    // leftCamX = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/Match/Pose/LeftCamX',
-    //   defaultValue: 0.0,
-    // );
-    // leftCamY = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/Match/Pose/LeftCamY',
-    //   defaultValue: 0.0,
-    // );
-    // rightCamX = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/Match/Pose/RightCamX',
-    //   defaultValue: 0.0,
-    // );
-    // rightCamY = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/Match/Pose/RightCamY',
-    //   defaultValue: 0.0,
-    // );
-
     // rightCamLocation = SubscribedTopic(
     //   ntConnection: ntConnection,
     //   topic: '/Match/Streams/RightLime/Location',
     //   defaultValue: false,
     // );
-    // rightCamHeading = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/Match/Streams/RightLime/Heading',
-    //   defaultValue: false,
-    // );
-    // leftCamLocation = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/Match/Streams/LeftLime/Location',
-    //   defaultValue: false,
-    // );
-    // leftCamHeading = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/Match/Streams/LeftLime/Heading',
-    //   defaultValue: false,
-    // );
-    // closeCamLocation = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/Match/Streams/CloseCam/Location',
-    //   defaultValue: false,
-    // );
-    // closeCamHeading = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/Match/Streams/CloseCam/Heading',
-    //   defaultValue: false,
-    // );
-    // farCamLocation = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/SmartDashboard/LL/limelight-one/mt2/X',
-    //   defaultValue: false,
-    // );
-    // farCamHeading = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: '/SmartDashboard/LL/limelight-one/mt2/Y',
-    //   defaultValue: false,
-    // );
-    // _target_pose = SubscribedTopic(
-    //   ntConnection: ntConnection,
-    //   topic: './limelight-one/targetpose_robotspace',//#TODO: figure out why it's not getting the values
-    //   //topic: '/limelight-one/rawfiducials'
-    //   defaultValue: const <Struct>[8.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0], // [8.0, 4.0, 0.0, 0.0, 0.0, 0.0],//XYZ, QYZ
-    // );
-    dtarget_pose = SubscribedTopic(
+    main_tag = SubscribedTopic(
       ntConnection: ntConnection,
-      topic: '/limelight-one/targetpose_robotspace',//#TODO: figure out why it's not getting the values
-      //topic: '/limelight-one/rawfiducials'
-      defaultValue: const [],
+      topic: '/limelight-one/targetpose_robotspace',
+      defaultValue: const [8.0, 4.0, 0.0, 0.0, 0.0, 0.0, 6],
+    );
+    All_tags = SubscribedTopic(
+      ntConnection: ntConnection,
+      topic: '/limelight-one/rawfiducials',
+      defaultValue: const [0, 0.0, 0.0, 1.0, 1.0, 1.0, 0],//[id, txnc, tync, ta, distToCamera, distToRobot, ambiguity, id2.....]
+    );
+
+    camera_data = SubscribedTopic(
+      ntConnection: ntConnection,
+      topic: '/limelight-one/camerapose_robotspace',
+      defaultValue: const [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 6],//array of data of the camera pos.
     );
 
     topics = [
-      // closeCamX,
-      // closeCamY,
-      // farCamX,
-      // farCamY,
-      // leftCamX,
-      // leftCamY,
-      // rightCamX,
-      // rightCamY,
-      // rightCamLocation,
-      // rightCamHeading,
-      // leftCamLocation,
-      // leftCamHeading,
-      // closeCamLocation,
-      // closeCamHeading,
-      // farCamLocation,
-      // farCamHeading,
-      dtarget_pose,
+      main_tag,
+      All_tags,
+      camera_data,
     ];
   }
 
@@ -205,31 +126,11 @@ class VisionTopics {
   // Offset get leftCamPose => Offset(leftCamX.value, leftCamY.value);
   // Offset get rightCamPose => Offset(rightCamX.value, rightCamY.value);
   
-
-
-  // (double, double) get robotPosition => (_target_pose.value[0],_target_pose.value[1]);//{_target_pose.value[0],_target_pose.value[1]};
-
-  //     // .whereType<double>()
-  //     // .toList();       
-  // if (robotPosition.isEmpty || (robotPosition[0] == 0 && robotPosition[1] == 0 && robotPosition[2] == 0)) {                
-  //   robotPosition() = (robotPositionRaw.first as List<Object?>?)
-  //     ?.whereType<double>()
-  //     .toList() ?? [];
-  //   // logger.debug('Something went wrong with the PoseStruct, falling back from: $robotPositionRaw to $robotPosition');
-  // }
-
-  // if (robotPosition.length >= 3) {
-  //   robotX = robotPosition()[0];
-  //   robotY = robotPosition()[1];
-  //   robotTheta = radians(robotPosition()[2]);
-  // }
   
-    //send debug:
-  //  Offset get targetPose => Offset(_target_pose.value[0], _target_pose.value[1]);
-  Offset get targetPose => Offset(dtarget_pose.value[0],dtarget_pose.value[1]);
-  //List<double> get targetVal => [dtarget_pose.value[0],dtarget_pose.value[1],dtarget_pose.value[5]]; //x, Y, yaw
-   //List<double> get datargetPose => _target_pose.value;// Offset(_target_pose.value[0], _target_pose.value[1]);
-   //List<Object?> get targetPose => [_target_pose];
+  Offset get targetPose => Offset(
+                    main_tag.value.isEmpty ? 8.0 : (main_tag.value[0] ?? 8.0),
+                    main_tag.value.isEmpty ? 8.0 : (main_tag.value[2] ?? 4.0),
+                    );
 }
 
 // Manages all game-piece-related NT topics.

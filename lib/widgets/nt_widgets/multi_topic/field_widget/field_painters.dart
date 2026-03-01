@@ -119,7 +119,7 @@ class VisionPainter extends CustomPainter {
   final Offset center;
   final Field field;
   final List<Offset> poses;
-  //final List<List<bool>> statuses;
+  final List<List<dynamic>> statuses;
   final Color color;
   final double markerSize;
   final double scale;
@@ -128,7 +128,7 @@ class VisionPainter extends CustomPainter {
     required this.center,
     required this.field,
     required this.poses,
-    //required this.statuses,
+    required this.statuses,
     required this.color,
     required this.markerSize,
     required this.scale,
@@ -154,6 +154,31 @@ class VisionPainter extends CustomPainter {
         center.dx + xFromCenter,
         center.dy + yFromCenter,
       );
+
+       TextPainter textPainter = TextPainter(
+        text: TextSpan(
+          text: 'ID${statuses[0].isEmpty ? '?' : (statuses[0][i] as num?)?.toInt()}\n${statuses[1].isEmpty ? '?' : statuses[1][i].toString().substring(0,4)}',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 8,
+            height: 0.85,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+        textAlign: TextAlign.center,
+      )..layout();
+
+      //#TODO: put apriltag ID and position.
+      // child: Text(
+      //   'ID: ${model.visionTopics.All_tags.value.isEmpty ? '?' : model.visionTopics.All_tags.value[0] ?? '?'}',
+      //   style:
+      //     Theme.of(
+      //       context,
+      //     ).textTheme.bodySmall?.copyWith(
+      //       color: Colors.white,
+      //       fontSize: 8,                                            
+      //     ),
+      // ),
 
       // if (locationAligned) {
       //   if (headingAligned) {
@@ -182,6 +207,11 @@ class VisionPainter extends CustomPainter {
           height: markerSize,
         );
         canvas.drawRect(rect, paint);
+
+        textPainter.paint(
+          canvas,
+          markerCenter + Offset(markerSize / 2 - textPainter.width, - textPainter.height / 2),
+        );
       // }
     }
   }

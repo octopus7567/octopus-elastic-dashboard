@@ -2,12 +2,13 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:elastic_dashboard/services/log.dart';
 import 'package:flutter/material.dart';
 
 // import 'package:elastic_dashboard/services/log.dart';
 import 'package:dot_cast/dot_cast.dart';
 import 'package:provider/provider.dart';
-import 'package:vector_math/vector_math_64.dart' show radians, degrees;
+import 'package:vector_math/vector_math_64.dart' show Vector3, degrees, radians;
 
 import 'package:elastic_dashboard/services/nt4_client.dart';
 import 'package:elastic_dashboard/services/struct_schemas/pose2d_struct.dart';
@@ -525,14 +526,13 @@ class FieldWidget extends NTWidget {
                                     ),
                                   ),
                                 if (model.showVisionTargets)
-                                  CustomPaint(
+                                  
+                                  CustomPaint(                                    
                                     size: imageDisplaySize,
                                     painter: VisionPainter(
                                       center: imageDisplaySize.toOffset / 2,
                                       field: model.field,
                                       poses: [
-                                        //Offset(robotVisionX,robotVisionY),
-                                        //Offset(model.visionTopics.targetPose.dx+robotX,-model.visionTopics.targetPose.dy+robotY),
                                         // compute target offset in world frame from robot pose + target offsets (horizontal, vertical)
                                         // final tv = model.visionTopics.targetVal;
                                         // double tx = robotX;
@@ -545,60 +545,135 @@ class FieldWidget extends NTWidget {
                                         //   tx += dx;
                                         //   ty += dy;
                                         // }
-                                        // Offset(tx, ty),
-                                        Offset(robotX+(cos(robotTheta+pi/2) * model.visionTopics.targetPose.dx - sin(robotTheta+pi/2) * model.visionTopics.targetPose.dy),
-                                              robotY+(sin(robotTheta+pi/2) * model.visionTopics.targetPose.dx + cos(robotTheta+pi/2) * model.visionTopics.targetPose.dy)),
-                                        // model.visionTopics.closeCamPose,
-                                        // model.visionTopics.farCamPose,
-                                        // model.visionTopics.leftCamPose,
-                                        // model.visionTopics.rightCamPose,
+
+                                        //working, processed by the limelight
+                                        // Offset(robotX+((cos(robotTheta-pi/2) * model.visionTopics.targetPose.dx) - (sin(robotTheta-pi/2) * model.visionTopics.targetPose.dy)),
+                                        //       robotY+((sin(robotTheta-pi/2) * model.visionTopics.targetPose.dx) + (cos(robotTheta-pi/2) * model.visionTopics.targetPose.dy))),
+
+                                        //dynnamicaly add a offset here based on size of model.visionTopics.All_tags.value
+                                        //raw values, must me processed here.
+                                        for (int i = 0; i < model.visionTopics.All_tags.value.length / 7; i++)                                    
+                                            //model.visionTopics.All_tags.value[i*7+1] = X (Horizontal Offset From Principal Pixel To Target (degrees))
+                                            //model.visionTopics.All_tags.value[i*7+2] = Y (Vertical Offset From Principal Pixel To Target (degrees))
+                                            //model.visionTopics.All_tags.value[i*7+3] = ta (Target Area (0% of image to 100% of image))
+                                            //model.visionTopics.All_tags.value[i*7+4] = distToCamera
+                                            //model.visionTopics.All_tags.value[i*7+5] = distToRobot
+                                            //model.visionTopics.All_tags.value[i*7+6] = ambiguity (?)
+
+                                            // the message no longer contains metres – the two offsets are
+                                            // horizontal/vertical angles (degrees) from the principal pixel.
+                                            // convert them into a world‑frame point using the camera
+                                            // intrinsics (1280×800 in your case) and the camera’s
+                                            // extrinsics (XYZ + yaw/pitch/roll) before finally rotating/adding
+                                            // the robot pose.
+                                            (){
+                                              // raw values from the packet
+                                              // final double horizPix = model.visionTopics.All_tags.value[i * 7 + 2] as double;
+                                              // final double vertPix   = model.visionTopics.All_tags.value[i * 7 + 1] as double;
+                                              // final double distCam  = model.visionTopics.All_tags.value[i * 7 + 4] as double;
+
+                                              // // camera intrinsics                                              
+                                              // // resolution constants – useful if you ever want to convert
+                                              // // pixel offsets instead of angle offsets
+                                              // const double camResX = 1280.0;
+                                              // const double camResY = 800.0;
+                                              // const double focalLength = 1600.0; // adjust based on your camera calibration (i don't fucking know)
+
+                                              // // convert pixel offsets to angles
+                                              // final double hRad = atan((horizPix - camResX / 2) / focalLength);
+                                              // final double vRad = atan((vertPix - camResY / 2) / focalLength);
+
+                                              // // build a direction vector in the camera coordinate system.
+                                              // // +z forward, +x right, +y down; magnitude = reported distance.
+                                              
+                                              //values are in degrees (txnc & tync)
+                                              final double horizDeg = -model.visionTopics.All_tags.value[i * 7 + 2] as double;
+                                              final double vertDeg  =  model.visionTopics.All_tags.value[i * 7 + 1] as double;
+                                              final double distCam  =  model.visionTopics.All_tags.value[i * 7 + 4] as double;
+                                              
+                                              // convert offsets to radians
+                                              final double hRad = radians(horizDeg);
+                                              final double vRad = radians(vertDeg);
+
+                                              // build a direction vector in the camera coordinate system.
+                                              // +z forward, +x right, +y down; magnitude = reported distance.
+                                              // Vector3 camVec = Vector3(
+                                              //   distCam * tan(hRad), // x
+                                              //   distCam * tan(vRad), // y
+                                              //   distCam,             // z
+                                              // );
+
+                                               Vector3 camVec = Vector3(
+                                                distCam * tan(hRad), // x
+                                                distCam * tan(vRad), // y
+                                                distCam,             // z
+                                              );
+
+                                              // apply the camera’s extrinsic transform (translation + yaw/pitch/roll)
+                                              final double camYaw   = radians(model.visionTopics.camera_data.value[3] ?? 0.0);
+                                              final double camPitch = radians(model.visionTopics.camera_data.value[4] ?? 0.0);
+                                              final double camRoll  = radians(model.visionTopics.camera_data.value[5] ?? 0.0);
+                                              Matrix4 camTransform = Matrix4.identity()
+                                                ..translateByVector3(Vector3(
+                                                      model.visionTopics.camera_data.value[0] ?? 0.0,
+                                                     -model.visionTopics.camera_data.value[1] ?? 0.0,
+                                                      model.visionTopics.camera_data.value[2] ?? 0.0))
+                                                ..rotateZ(camYaw)
+                                                ..rotateX(camPitch)
+                                                ..rotateY(camRoll);
+                                              Vector3 worldCam = camTransform.transform3(camVec);
+
+                                              // worldCam.x += (worldCam.x*distCam);
+                                              // worldCam.y += (worldCam.y*distCam);
+                                              
+                                              // worldCam.x += worldCam.x * distCam * cos(robotTheta-pi/2);
+                                              // worldCam.y += worldCam.y * distCam * sin(robotTheta-pi/2);
+
+                                              // rotate/translate into field coordinates using robot pose
+                                              double cosR = cos(robotTheta);
+                                              double sinR = sin(robotTheta);
+                                              worldCam.x *= (cosR * distCam);
+                                              worldCam.y *= (sinR * distCam);
+                                              // worldCam.x *= distCam;
+                                              // worldCam.y *= distCam;
+                                              
+                                              double xField = robotX +
+                                                  (cosR * worldCam.x - sinR * worldCam.y);//*distCam;
+                                              double yField = robotY +
+                                                  (sinR * worldCam.x + cosR * worldCam.y);//*distCam;
+
+                                              //logger.debug('Cam: ${model.visionTopics.camera_data.value} = ${Offset(xField, yField)} vrs ${Offset(robotX+((cos(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+1] as double)) - (sin(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+2] as double))), robotY+((sin(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+1] as double)) + (cos(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+2] as double))))}');
+                                              return Offset(xField, yField);
+                                            }(),
+                                          // robotX+((cos(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+1] as double)) - (sin(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+2] as double))),
+                                          // robotY+((sin(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+1] as double)) + (cos(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+2] as double))),
                                       ],
-                                      // statuses: [
-                                      //   // [
-                                      //   //   model
-                                      //   //       .visionTopics
-                                      //   //       .closeCamLocation
-                                      //   //       .value,
-                                      //   //   model
-                                      //   //       .visionTopics
-                                      //   //       .closeCamHeading
-                                      //   //       .value,
-                                      //   // ],
-                                      //   // [
-                                      //   //   model
-                                      //   //       .visionTopics
-                                      //   //       .farCamLocation
-                                      //   //       .value,
-                                      //   //   model
-                                      //   //       .visionTopics
-                                      //   //       .farCamHeading
-                                      //   //       .value,
-                                      //   // ],
-                                      //   // [
-                                      //   //   model
-                                      //   //       .visionTopics
-                                      //   //       .leftCamLocation
-                                      //   //       .value,
-                                      //   //   model
-                                      //   //       .visionTopics
-                                      //   //       .leftCamHeading
-                                      //   //       .value,
-                                      //   // ],
-                                      //   // [
-                                      //   //   model
-                                      //   //       .visionTopics
-                                      //   //       .rightCamLocation
-                                      //   //       .value,
-                                      //   //   model
-                                      //   //       .visionTopics
-                                      //   //       .rightCamHeading
-                                      //   //       .value,
-                                      //   // ],
-                                      // ],
+                                      statuses: [
+                                          [
+                                            for (int i = 0; i < model.visionTopics.All_tags.value.length / 7; i++)
+                                              model.visionTopics.All_tags.value[i*7],
+                                          ],
+                                          [
+                                            for (int i = 0; i < model.visionTopics.All_tags.value.length / 7; i++)
+                                              model.visionTopics.All_tags.value[i*7+4],
+                                          ]
+                                      ],
+                                      
                                       color: model.visionTargetColor,
                                       markerSize: model.visionMarkerSize,
                                       scale: scale,
                                     ),
+                                    //#TODO: put apriltag ID and position.
+                                    // child: Text(
+                                    //   'ID: ${model.visionTopics.All_tags.value.isEmpty ? '?' : model.visionTopics.All_tags.value[0] ?? '?'}',
+                                    //   style:
+                                    //     Theme.of(
+                                    //       context,
+                                    //     ).textTheme.bodySmall?.copyWith(
+                                    //       color: Colors.white,
+                                    //       fontSize: 8,                                            
+                                    //     ),
+                                    // ),
                                   ),
                                 if (model.showOtherObjects)
                                   CustomPaint(
