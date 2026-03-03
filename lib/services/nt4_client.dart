@@ -337,8 +337,9 @@ class NT4Client {
   final SchemaManager schemaManager;
 
   final Map<int, NT4Subscription> _subscriptions = {};
-  final Set<NT4Subscription> _subscribedTopics = {};
   final Map<String, Set<NT4Subscription>> _subscriptionsByTopic = {};
+
+  Iterable<NT4Subscription> get _subscribedTopics => _subscriptions.values;
 
   final Map<String, NT4Topic> _clientPublishedTopics = {};
   final Map<int, NT4Topic> announcedTopics = {};
@@ -381,7 +382,8 @@ class NT4Client {
   bool _attemptingRTTConnection = false;
 
   Map<int, NT4Subscription> get subscriptions => _subscriptions;
-  Set<NT4Subscription> get subscribedTopics => _subscribedTopics;
+  Iterable<NT4Subscription> get subscribedTopics => _subscribedTopics;
+
   List<Function(NT4Topic topic)> get topicAnnounceListeners =>
       _topicAnnounceListeners;
 
@@ -466,7 +468,6 @@ class NT4Client {
     logger.trace('Creating new subscription: $newSub');
 
     _subscriptions[newSub.uid] = newSub;
-    _subscribedTopics.add(newSub);
     _indexSubscription(newSub);
     _wsSubscribe(newSub);
 
@@ -484,7 +485,6 @@ class NT4Client {
   void unSubscribe(NT4Subscription sub) {
     logger.trace('Unsubscribing: $sub');
     _subscriptions.remove(sub.uid);
-    _subscribedTopics.remove(sub);
     _unindexSubscription(sub);
     _wsUnsubscribe(sub);
 
