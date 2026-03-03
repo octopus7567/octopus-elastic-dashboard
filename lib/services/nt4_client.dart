@@ -328,6 +328,7 @@ class NT4Client {
   static const int _pingTimeoutMsV41 = 1000;
 
   String serverBaseAddress;
+
   final VoidCallback? onConnect;
   final VoidCallback? onDisconnect;
   final List<Function(NT4Topic topic)> _topicAnnounceListeners = [];
@@ -337,15 +338,21 @@ class NT4Client {
 
   final Map<int, NT4Subscription> _subscriptions = {};
   final Set<NT4Subscription> _subscribedTopics = {};
-  int _subscriptionUIDCounter = 0;
-  int _publishUIDCounter = 0;
-  final Map<String, Object?> lastAnnouncedValues = {};
-  final Map<String, int> lastAnnouncedTimestamps = {};
+  final Map<String, Set<NT4Subscription>> _subscriptionsByTopic = {};
+
   final Map<String, NT4Topic> _clientPublishedTopics = {};
   final Map<int, NT4Topic> announcedTopics = {};
+
+  final Map<String, Object?> lastAnnouncedValues = {};
+  final Map<String, int> lastAnnouncedTimestamps = {};
+
   int _clientId = 0;
+  int _subscriptionUIDCounter = 0;
+  int _publishUIDCounter = 0;
+
   int _serverTimeOffsetUS = 0;
   double _latencyMs = 0;
+  int _lastPongTime = 0;
 
   WebSocketChannel? _mainWebsocket;
   StreamSubscription? _mainWebsocketListener;
@@ -372,8 +379,6 @@ class NT4Client {
   bool _attemptConnection = true;
   bool _attemptingNTConnection = false;
   bool _attemptingRTTConnection = false;
-
-  int _lastPongTime = 0;
 
   Map<int, NT4Subscription> get subscriptions => _subscriptions;
   Set<NT4Subscription> get subscribedTopics => _subscribedTopics;
@@ -445,7 +450,7 @@ class NT4Client {
   }
 
   void removeTopicUnannounceListener(Function(NT4Topic topic) onUnannounce) {
-    _topicUnannounceListeners.add(onUnannounce);
+    _topicUnannounceListeners.remove(onUnannounce);
   }
 
   NT4Subscription subscribe({
@@ -462,6 +467,7 @@ class NT4Client {
 
     _subscriptions[newSub.uid] = newSub;
     _subscribedTopics.add(newSub);
+    _indexSubscription(newSub);
     _wsSubscribe(newSub);
 
     if (lastAnnouncedValues.containsKey(topic) &&
@@ -479,6 +485,7 @@ class NT4Client {
     logger.trace('Unsubscribing: $sub');
     _subscriptions.remove(sub.uid);
     _subscribedTopics.remove(sub);
+    _unindexSubscription(sub);
     _wsUnsubscribe(sub);
 
     // If there are no other subscriptions that are in the same table/tree
@@ -496,13 +503,13 @@ class NT4Client {
             sub.topic.startsWith('${element.name}/') ||
             sub.topic == element.name,
       )) {
-        Future(() => unpublishTopic(topic));
+        Timer.run(() => unpublishTopic(topic));
       }
     }
   }
 
   void clearAllSubscriptions() {
-    for (NT4Subscription sub in _subscriptions.values) {
+    for (NT4Subscription sub in _subscriptions.values.toList()) {
       unSubscribe(sub);
     }
     _subscriptions.clear();
@@ -575,10 +582,8 @@ class NT4Client {
 
     lastAnnouncedValues[topic.name] = data;
     lastAnnouncedTimestamps[topic.name] = timestamp;
-    for (NT4Subscription sub in _subscriptions.values) {
-      if (sub.topic == topic.name) {
-        sub.updateValue(data, timestamp);
-      }
+    for (NT4Subscription sub in _matchingSubscriptions(topic.name)) {
+      sub.updateValue(data, timestamp);
     }
   }
 
@@ -669,6 +674,31 @@ class NT4Client {
     }
 
     _mainWebsocket?.sink.add(data);
+  }
+
+  Iterable<NT4Subscription> _matchingSubscriptions(String topicName) sync* {
+    if (_subscriptionsByTopic.containsKey(topicName)) {
+      yield* _subscriptionsByTopic[topicName]!;
+    }
+  }
+
+  void _indexSubscription(NT4Subscription subscription) {
+    _subscriptionsByTopic
+        .putIfAbsent(subscription.topic, () => {})
+        .add(subscription);
+  }
+
+  void _unindexSubscription(NT4Subscription subscription) {
+    final subscriptions = _subscriptionsByTopic[subscription.topic];
+
+    if (subscriptions == null) {
+      return;
+    }
+
+    subscriptions.remove(subscription);
+    if (subscriptions.isEmpty) {
+      _subscriptionsByTopic.remove(subscription.topic);
+    }
   }
 
   Future<void> _connect() async {
@@ -1061,10 +1091,8 @@ class NT4Client {
             NT4Topic topic = announcedTopics[topicID]!;
             lastAnnouncedValues[topic.name] = value;
             lastAnnouncedTimestamps[topic.name] = timestampUS;
-            for (NT4Subscription sub in _subscriptions.values) {
-              if (sub.topic == topic.name) {
-                sub.updateValue(value, timestampUS);
-              }
+            for (NT4Subscription sub in _matchingSubscriptions(topic.name)) {
+              sub.updateValue(value, timestampUS);
             }
 
             // If it's a schema topic, try to process the new schema
