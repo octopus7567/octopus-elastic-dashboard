@@ -15,8 +15,9 @@ import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/camera_stream.d
 import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/yagsl_swerve_drive.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/nt_widget.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/single_topic/boolean_box.dart';
-// import 'package:elastic_dashboard/widgets/nt_widgets/single_topic/toggle_switch.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/single_topic/text_display.dart';
+
+// import 'package:elastic_dashboard/widgets/nt_widgets/single_topic/toggle_switch.dart';
 
 class NetworkTableTreeRow {
   final NTConnection ntConnection;

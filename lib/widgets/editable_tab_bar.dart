@@ -241,7 +241,7 @@ class EditableTabBar extends StatelessWidget {
                 // Tab movement buttons (move left, close, move right)
                 Row(
                   children: [
-                    if (updateButton != null) updateButton!,
+                    ?updateButton,
                     IconButton(
                       style: endButtonStyle,
                       onPressed:

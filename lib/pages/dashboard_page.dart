@@ -609,10 +609,9 @@ class _DashboardPageState extends State<DashboardPage>
       ),
       callback: () {
         if (preferences.getBool(PrefKeys.layoutLocked) ??
-              Defaults.layoutLocked) {
-            model.unlockLayout();
-        }
-        else {
+            Defaults.layoutLocked) {
+          model.unlockLayout();
+        } else {
           model.lockLayout();
         }
       },
@@ -626,18 +625,17 @@ class _DashboardPageState extends State<DashboardPage>
       ),
       callback: () {
         if (preferences.getBool(PrefKeys.autoResizeToDS) ??
-              Defaults.autoResizeToDS) {
-                model.disableAutoResizeToDS();
-                //say debug, confirmed working, but the the window don't update
-                //logger.debug('DISABLED Auto Resize to Driver Station via keyboard shortcut');
-        }
-        else {
-            model.enableAutoResizeToDS();
-            //logger.debug('ENABLED Auto Resize to Driver Station via keyboard shortcut');
+            Defaults.autoResizeToDS) {
+          model.disableAutoResizeToDS();
+          //say debug, confirmed working, but the the window don't update
+          //logger.debug('DISABLED Auto Resize to Driver Station via keyboard shortcut');
+        } else {
+          model.enableAutoResizeToDS();
+          //logger.debug('ENABLED Auto Resize to Driver Station via keyboard shortcut');
         }
       },
     );
-    
+
     // Test NT (Ctrl + G)
     // hotKeyManager.register(
     //   HotKey(

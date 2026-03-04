@@ -45,6 +45,7 @@ class ToggleSwitch extends NTWidget {
     );
   }
 }
+
 /*
 class ToggleSwitchModel extends SingleTopicNTWidgetModel {
   static const String modelType = ToggleSwitch.widgetType;

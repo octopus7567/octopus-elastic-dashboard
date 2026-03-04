@@ -1,5 +1,6 @@
+import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/field_widget/field_widget.dart'
+    as field_widget;
 
-import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/field_widget/field_widget.dart' as field_widget;
 import 'package:flutter/material.dart';
 
 import 'package:elastic_dashboard/services/nt4_client.dart';
@@ -38,7 +39,7 @@ class SubscribedTopic<T extends Object?> {
   }
 }
 
-class FMSTopics{
+class FMSTopics {
   final NTConnection ntConnection;
   final double period;
   late final SubscribedTopic<List<dynamic>> data;
@@ -49,12 +50,16 @@ class FMSTopics{
     data = SubscribedTopic(
       ntConnection: ntConnection,
       topic: '/FMSInfo',
-      defaultValue: const ['',0,'',true,null,],//EventName,FMSControlData,GameSpecificMessage,IsRedAlliance,MatchNumber,MatchType,ReplayNumber,StationNumber
+      defaultValue: const [
+        '',
+        0,
+        '',
+        true,
+        null,
+      ], //EventName,FMSControlData,GameSpecificMessage,IsRedAlliance,MatchNumber,MatchType,ReplayNumber,StationNumber
     );
-    
-    topics = [
-      data
-    ];
+
+    topics = [data];
   }
 }
 
@@ -82,12 +87,11 @@ class VisionTopics {
   // late final SubscribedTopic<bool> farCamHeading;
 
   //late final SubscribedTopic<List<double>> _target_pose;
-  late final SubscribedTopic<List<dynamic>> main_tag;//THIS! THIS WORKS
-  late final SubscribedTopic<List<dynamic>> All_tags;//THIS! THIS WORKS
-  late final SubscribedTopic<List<dynamic>> camera_data;
+  late final SubscribedTopic<List<dynamic>> mainTag; //THIS! THIS WORKS
+  late final SubscribedTopic<List<dynamic>> allTags; //THIS! THIS WORKS
+  late final SubscribedTopic<List<dynamic>> cameraData;
 
-
-  NT4Subscription get subscription => main_tag.subscription;
+  NT4Subscription get subscription => mainTag.subscription;
 
   late final List<SubscribedTopic> topics;
 
@@ -102,27 +106,43 @@ class VisionTopics {
     //   topic: '/Match/Streams/RightLime/Location',
     //   defaultValue: false,
     // );
-    main_tag = SubscribedTopic(
+    mainTag = SubscribedTopic(
       ntConnection: ntConnection,
       topic: '/limelight-one/targetpose_robotspace',
       defaultValue: const [8.0, 4.0, 0.0, 0.0, 0.0, 0.0, 6],
     );
-    All_tags = SubscribedTopic(
+    allTags = SubscribedTopic(
       ntConnection: ntConnection,
       topic: '/limelight-one/rawfiducials',
-      defaultValue: const [0, 0.0, 0.0, 1.0, 1.0, 1.0, 0],//[id, txnc, tync, ta, distToCamera, distToRobot, ambiguity, id2.....]
+      defaultValue: const [
+        0,
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        0,
+      ], //[id, txnc, tync, ta, distToCamera, distToRobot, ambiguity, id2.....]
     );
 
-    camera_data = SubscribedTopic(
+    cameraData = SubscribedTopic(
       ntConnection: ntConnection,
       topic: '/limelight-one/camerapose_robotspace',
-      defaultValue: const [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 6],//array of data of the camera pos.
+      defaultValue: const [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        1.0,
+        1.0,
+        6,
+      ], //array of data of the camera pos.
     );
 
     topics = [
-      main_tag,
-      All_tags,
-      camera_data,
+      mainTag,
+      allTags,
+      cameraData,
     ];
   }
 
@@ -145,12 +165,11 @@ class VisionTopics {
   // Offset get farCamPose => Offset(farCamX.value, farCamY.value);
   // Offset get leftCamPose => Offset(leftCamX.value, leftCamY.value);
   // Offset get rightCamPose => Offset(rightCamX.value, rightCamY.value);
-  
-  
+
   Offset get targetPose => Offset(
-                    main_tag.value.isEmpty ? 8.0 : (main_tag.value[0] ?? 8.0),
-                    main_tag.value.isEmpty ? 8.0 : (main_tag.value[2] ?? 4.0),
-                    );
+    mainTag.value.isEmpty ? 8.0 : (mainTag.value[0] ?? 8.0),
+    mainTag.value.isEmpty ? 8.0 : (mainTag.value[2] ?? 4.0),
+  );
 }
 
 // Manages all game-piece-related NT topics.

@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:dot_cast/dot_cast.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:provider/provider.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 import 'package:elastic_dashboard/services/log.dart';
 import 'package:elastic_dashboard/services/nt4_client.dart';
@@ -264,6 +264,7 @@ class _GraphWidgetGraph extends StatefulWidget {
   @override
   State<_GraphWidgetGraph> createState() => _GraphWidgetGraphState();
 }
+
 class _GraphWidgetGraphState extends State<_GraphWidgetGraph>
     with WidgetsBindingObserver {
   ChartSeriesController? _seriesController;
@@ -336,7 +337,6 @@ class _GraphWidgetGraphState extends State<_GraphWidgetGraph>
       _graphData
         ..clear()
         ..addAll([
-          
           _GraphPoint(x: x - widget.timeDisplayed * 1e6, y: y),
           _GraphPoint(x: x, y: y),
         ]);
@@ -347,7 +347,7 @@ class _GraphWidgetGraphState extends State<_GraphWidgetGraph>
 
   void _initializeListener() {
     _subscriptionListener?.cancel();
-    
+
     _subscriptionListener = widget.subscription?.periodicStream(yieldAll: true).listen((
       data,
     ) {

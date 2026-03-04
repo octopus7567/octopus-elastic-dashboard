@@ -1,24 +1,28 @@
+// ignore_for_file: constant_identifier_names
+
 import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
-// import 'package:elastic_dashboard/services/log.dart';
 import 'package:dot_cast/dot_cast.dart';
+import 'package:patterns_canvas/patterns_canvas.dart';
 import 'package:provider/provider.dart';
 import 'package:vector_math/vector_math_64.dart' show Vector3, degrees, radians;
 
-
-import 'package:patterns_canvas/patterns_canvas.dart';
 import 'package:elastic_dashboard/services/nt4_client.dart';
 import 'package:elastic_dashboard/services/struct_schemas/pose2d_struct.dart';
 import 'package:elastic_dashboard/util/test_utils.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/field_widget/field_model.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/field_widget/field_painters.dart';
-// ignore: unused_import
-import 'package:elastic_dashboard/services/log.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/nt_widget.dart';
+
+// ignore: unused_import
+
+// import 'package:elastic_dashboard/services/log.dart';
+
+// ignore: unused_import
 
 extension _SizeUtils on Size {
   Offset get toOffset => Offset(width, height);
@@ -29,29 +33,28 @@ extension _SizeUtils on Size {
   );
 }
 
-String formatDouble(double value, int fractionDigits, int decimalDigits){
+String formatDouble(double value, int fractionDigits, int decimalDigits) {
   int add = 0;
   double fakeval = value;
   bool negative = false;
-  if (value < 0)//negative value
+  if (value < 0) //negative value
   {
     if (fakeval > -1) fakeval -= 1;
     negative = true;
-    while (fakeval > -pow(10, decimalDigits-1)){
+    while (fakeval > -pow(10, decimalDigits - 1)) {
       fakeval *= 10;
       add++;
     }
-  }
-  else if (value > 0)//positive value
+  } else if (value > 0) //positive value
   {
     if (fakeval < 1) fakeval += 1;
-    while (fakeval < pow(10, decimalDigits-1)){
+    while (fakeval < pow(10, decimalDigits - 1)) {
       fakeval *= 10;
       add++;
     }
   }
   String output = value.abs().toStringAsFixed(fractionDigits);
-  while (add > 0){
+  while (add > 0) {
     output = '0$output';
     add--;
   }
@@ -88,8 +91,8 @@ class FieldWidget extends NTWidget {
         scaleReduction;
 
     return Offset(xFromCenter, yFromCenter);
-  }  
-  
+  }
+
   static const int ENABLED_FLAG = 0x01;
   static const int AUTO_FLAG = 0x02;
   static const int TEST_FLAG = 0x04;
@@ -109,15 +112,15 @@ class FieldWidget extends NTWidget {
         return 'Unknown';
     }
   }
-  
-  bool emptyString(String string)=> (string.isEmpty || string == ''  || string == ' ');
+
+  bool emptyString(String string) =>
+      (string.isEmpty || string == '' || string == ' ');
 
   bool _flagMatches(int word, int flag) => (word & flag) != 0;
 
   @override
   Widget build(BuildContext context) {
     FieldWidgetModel model = cast(context.watch<NTWidgetModel>());
-
 
     return LayoutBuilder(
       builder: (context, constraints) => ListenableBuilder(
@@ -128,55 +131,66 @@ class FieldWidget extends NTWidget {
             // model.robotXSubscription.value,
             // model.robotYSubscription.value,
             // model.robotHeadingSubscription.value,
-            model.robotSubscription.value
+            model.robotSubscription.value,
           ];
           String eventName = tryCast(model.eventNameSubscription.value) ?? '';
           int controlData = tryCast(model.controlDataSubscription.value) ?? 32;
-          String gameMessage = tryCast(model.gameSpecificMessageSubscription.value) ?? '';
+          String gameMessage =
+              tryCast(model.gameSpecificMessageSubscription.value) ?? '';
           bool redAlliance = tryCast(model.allianceTopic.value) ?? true;
           int matchNumber = tryCast(model.matchNumberSubscription.value) ?? 0;
           int matchType = tryCast(model.matchTypeSubscription.value) ?? 0;
           int replayNumber = tryCast(model.replayNumberSubscription.value) ?? 0;
 
-          
-          bool hubEnabled = tryCast(model.hubEnabledSubscription.value) ?? false;
-          double shiftTimerNumber(){
+          bool hubEnabled =
+              tryCast(model.hubEnabledSubscription.value) ?? false;
+          double shiftTimerNumber() {
             double val = tryCast(model.shiftTimerSubscription.value) ?? 0;
             if (val < 0) val += 150;
             return val;
           }
-          double currentShiftNumber = tryCast(model.currentShiftSubscription.value) ?? 0;//tryCast(model.currentShiftSubscription.value) ?? 0;
-          bool bothHubEnabled = (currentShiftNumber<=2 || currentShiftNumber==7);
-          bool flashHub()=> /*((shiftTimerNumber <= 0 ? shiftTimerNumber+150 : shiftTimerNumber)*/(shiftTimerNumber()*10%2)>0.6;
-          bool wontBeDisabled(bool enemy){// true if the next shift doesn't mean a disable of this hub
-            if (currentShiftNumber == 1 || currentShiftNumber == 6) return true;//both will still be enabled next shift
+
+          double currentShiftNumber =
+              tryCast(model.currentShiftSubscription.value) ??
+              0; //tryCast(model.currentShiftSubscription.value) ?? 0;
+          bool bothHubEnabled =
+              (currentShiftNumber <= 2 || currentShiftNumber == 7);
+          bool
+          flashHub() => /*((shiftTimerNumber <= 0 ? shiftTimerNumber+150 : shiftTimerNumber)*/
+              (shiftTimerNumber() * 10 % 2) > 0.6;
+          bool wontBeDisabled(bool enemy) {
+            // true if the next shift doesn't mean a disable of this hub
+            if (currentShiftNumber == 1 || currentShiftNumber == 6) {
+              return true; //both will still be enabled next shift
+            }
             bool first = (currentShiftNumber == 2 || currentShiftNumber == 4);
             bool seccond = (currentShiftNumber == 3 || currentShiftNumber == 5);
             bool alliance = enemy ? redAlliance : !redAlliance;
-            if (alliance)//red
+            if (alliance) //red
             {
-              if (gameMessage == 'B' && first)//Blue will be disabled first, so we stay on shift 1, 3
+              if (gameMessage == 'B' &&
+                  first) //Blue will be disabled first, so we stay on shift 1, 3
+              {
+                return true;
+              } else if (gameMessage == 'R' &&
+                  seccond) //red will be disabled first, so we stay on shift 2, 4]
               {
                 return true;
               }
-              else if (gameMessage == 'R' && seccond)//red will be disabled first, so we stay on shift 2, 4]
-              {
-                return true;
-              }
-            }
-            else if (!alliance)//blue
+            } else if (!alliance) //blue
             {
-              if (gameMessage == 'R' && first)//Red will be disabled first, so we stay on shift 1, 3
+              if (gameMessage == 'R' &&
+                  first) //Red will be disabled first, so we stay on shift 1, 3
               {
                 return true;
-              }
-              else if (gameMessage == 'B' && seccond)//Blue will be disabled first, so we stay on shift 2, 4]
+              } else if (gameMessage == 'B' &&
+                  seccond) //Blue will be disabled first, so we stay on shift 2, 4]
               {
                 return true;
               }
             }
             return false;
-          } 
+          }
 
           String eventNameDisplay = '$eventName${(eventName != '') ? ' ' : ''}';
           String matchTypeString = _getMatchTypeString(matchType);
@@ -187,7 +201,10 @@ class FieldWidget extends NTWidget {
           bool fmsConnected = _flagMatches(controlData, FMS_ATTACHED_FLAG);
           bool dsAttached = _flagMatches(controlData, DS_ATTACHED_FLAG);
 
-          bool emergencyStopped = _flagMatches(controlData, EMERGENCY_STOP_FLAG);
+          bool emergencyStopped = _flagMatches(
+            controlData,
+            EMERGENCY_STOP_FLAG,
+          );
 
           Color robotcontrolstateColor = Color.fromARGB(255, 255, 0, 0);
           String robotControlState = 'Disabled';
@@ -204,39 +221,34 @@ class FieldWidget extends NTWidget {
             }
           }
 
-
           String matchDisplayString =
               '$eventNameDisplay$matchTypeString match $matchNumber$replayNumberDisplay';
-          Widget matchDisplayWidget = 
-          // Row(
-          // //mainAxisSize: MainAxisSize.min,
-          // children: [
-            Container(
-              // alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0,
-                    vertical: 2.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: (!redAlliance)
-                        ? Colors.red.shade900
-                        : Colors.blue.shade900,
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
-                  child: Text(
-                    matchDisplayString,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
+          Widget matchDisplayWidget =
+              // Row(
+              // //mainAxisSize: MainAxisSize.min,
+              // children: [
+              Container(
+                // alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 2.0,
+                ),
+                decoration: BoxDecoration(
+                  color: (!redAlliance)
+                      ? Colors.red.shade900
+                      : Colors.blue.shade900,
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                child: Text(
+                  matchDisplayString,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
                 // ),
-            // ],
-          );
+                // ],
+              );
 
-          String fmsDisplayString = (fmsConnected)
-              ? 'FMS ☑'
-              : 'FMS ☐';
-          String dsDisplayString = (dsAttached)
-              ? 'DS   ☑'
-              : 'DS   ☐';
+          String fmsDisplayString = (fmsConnected) ? 'FMS ☑' : 'FMS ☐';
+          String dsDisplayString = (dsAttached) ? 'DS   ☑' : 'DS   ☐';
 
           Icon fmsDisplayIcon = (fmsConnected)
               ? const Icon(Icons.check, color: Colors.green, size: 18)
@@ -244,7 +256,6 @@ class FieldWidget extends NTWidget {
           Icon dsDisplayIcon = (dsAttached)
               ? const Icon(Icons.check, color: Colors.green, size: 18)
               : const Icon(Icons.clear, color: Colors.red, size: 18);
-
 
           late Widget robotStateWidget;
           if (emergencyStopped) {
@@ -288,36 +299,37 @@ class FieldWidget extends NTWidget {
             );
           } else {
             robotStateWidget = Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                                vertical: 2.0,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color.fromARGB(255, 107, 3, 93),
-                                borderRadius: BorderRadius.circular(4.0),
-                              ),
-                              child: Row(
-                                children: [                            
-                                  Text('Robot State: '),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0,
-                                      vertical: 2.0,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: robotcontrolstateColor,//const Color.fromARGB(255, 3, 107, 76),
-                                      borderRadius: BorderRadius.circular(4.0),
-                                    ),
-                                    child: Text(robotControlState),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],                           
-                        );
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 2.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 107, 3, 93),
+                    borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  child: Row(
+                    children: [
+                      Text('Robot State: '),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 2.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              robotcontrolstateColor, //const Color.fromARGB(255, 3, 107, 76),
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: Text(robotControlState),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
           }
 
           // return Column(
@@ -368,14 +380,18 @@ class FieldWidget extends NTWidget {
           } else {
             List<double> robotPosition = robotPositionRaw
                 .whereType<double>()
-                .toList();       
-            if (robotPosition.isEmpty || (robotPosition[0] == 0 && robotPosition[1] == 0 && robotPosition[2] == 0)) {                
-              robotPosition = (robotPositionRaw.first as List<Object?>?)
-                ?.whereType<double>()
-                .toList() ?? [];
+                .toList();
+            if (robotPosition.isEmpty ||
+                (robotPosition[0] == 0 &&
+                    robotPosition[1] == 0 &&
+                    robotPosition[2] == 0)) {
+              robotPosition =
+                  (robotPositionRaw.first as List<Object?>?)
+                      ?.whereType<double>()
+                      .toList() ??
+                  [];
               // logger.debug('Something went wrong with the PoseStruct, falling back from: $robotPositionRaw to $robotPosition');
               //logger.debug('Value: ${model.visionTopics.targetPose} + ${Offset(robotPosition[0],robotPosition[1])} = ${Offset(model.visionTopics.targetPose.dx+robotPosition[0],-model.visionTopics.targetPose.dy+robotPosition[1])}');
-
             }
             //logger.debug('shift: $currentShiftNumber & timer: ${shiftTimerNumber()} & debug: ${model.currentShiftSubscription.value}');
 
@@ -400,8 +416,8 @@ class FieldWidget extends NTWidget {
           // {
           //   List<double> robotVisionPosition = robotVisionPositionRaw
           //       .whereType<double>()
-          //       .toList();       
-          //   if (robotVisionPosition.isEmpty || (robotVisionPosition[0] == 0 && robotVisionPosition[1] == 0 && robotVisionPosition[2] == 0)) {                
+          //       .toList();
+          //   if (robotVisionPosition.isEmpty || (robotVisionPosition[0] == 0 && robotVisionPosition[1] == 0 && robotVisionPosition[2] == 0)) {
           //     robotVisionPosition = (robotVisionPositionRaw.first as List<Object?>?)
           //       ?.whereType<double>()
           //       .toList() ?? [];
@@ -421,7 +437,6 @@ class FieldWidget extends NTWidget {
           // debugPrint('robotPositionRaw: $robotPositionRaw');
           // debugPrint('robotX: $robotX, robotY: $robotY, robotTheta: $robotTheta');
           // debugPrint('model.robotSubscription.value: ${model.robotSubscription.value}');
-          
 
           Size size = Size(constraints.maxWidth, constraints.maxHeight);
 
@@ -517,146 +532,146 @@ class FieldWidget extends NTWidget {
                       fieldCenter: fieldCenter,
                       scaleReduction: scale,
                     ),
-      // builder: (context, constraints) {
-      //   Size size = Size(constraints.maxWidth, constraints.maxHeight);
-      //   FittedSizes fittedSizes = applyBoxFit(
-      //     BoxFit.contain,
-      //     model.field.fieldImageSize ?? const Size(0, 0),
-      //     size,
-      //   );
-      //   FittedSizes rotatedFittedSizes = applyBoxFit(
-      //     BoxFit.contain,
-      //     model.field.fieldImageSize?.rotateBy(
-      //           -radians(model.fieldRotation),
-      //         ) ??
-      //         const Size(0, 0),
-      //     size,
-      //   );
-      //   double scaleReduction =
-      //       (fittedSizes.destination.width / fittedSizes.source.width);
-      //   double rotatedScaleReduction =
-      //       (rotatedFittedSizes.destination.width /
-      //       rotatedFittedSizes.source.width);
+                    // builder: (context, constraints) {
+                    //   Size size = Size(constraints.maxWidth, constraints.maxHeight);
+                    //   FittedSizes fittedSizes = applyBoxFit(
+                    //     BoxFit.contain,
+                    //     model.field.fieldImageSize ?? const Size(0, 0),
+                    //     size,
+                    //   );
+                    //   FittedSizes rotatedFittedSizes = applyBoxFit(
+                    //     BoxFit.contain,
+                    //     model.field.fieldImageSize?.rotateBy(
+                    //           -radians(model.fieldRotation),
+                    //         ) ??
+                    //         const Size(0, 0),
+                    //     size,
+                    //   );
+                    //   double scaleReduction =
+                    //       (fittedSizes.destination.width / fittedSizes.source.width);
+                    //   double rotatedScaleReduction =
+                    //       (rotatedFittedSizes.destination.width /
+                    //       rotatedFittedSizes.source.width);
 
-      //   if (scaleReduction.isNaN) {
-      //     scaleReduction = 0;
-      //   }
-      //   if (rotatedScaleReduction.isNaN) {
-      //     rotatedScaleReduction = 0;
-      //   }
+                    //   if (scaleReduction.isNaN) {
+                    //     scaleReduction = 0;
+                    //   }
+                    //   if (rotatedScaleReduction.isNaN) {
+                    //     rotatedScaleReduction = 0;
+                    //   }
 
-      //   Offset fittedCenter = fittedSizes.destination.toOffset / 2;
-      //   Offset fieldCenter = model.field.center;
+                    //   Offset fittedCenter = fittedSizes.destination.toOffset / 2;
+                    //   Offset fieldCenter = model.field.center;
 
-      //   model.widgetSize = size;
+                    //   model.widgetSize = size;
 
-      //   if (!model.rendered &&
-      //       model.widgetSize != null &&
-      //       size != const Size(0, 0) &&
-      //       size.width > 100.0 &&
-      //       scaleReduction != 0.0 &&
-      //       fieldCenter != const Offset(0.0, 0.0) &&
-      //       model.field.fieldImageLoaded) {
-      //     model.rendered = true;
-      //   }
+                    //   if (!model.rendered &&
+                    //       model.widgetSize != null &&
+                    //       size != const Size(0, 0) &&
+                    //       size.width > 100.0 &&
+                    //       scaleReduction != 0.0 &&
+                    //       fieldCenter != const Offset(0.0, 0.0) &&
+                    //       model.field.fieldImageLoaded) {
+                    //     model.rendered = true;
+                    //   }
 
-      //   // Try rebuilding again if the image isn't fully rendered
-      //   // Can't do it if it's in a unit test cause it causes issues with timers running
-      //   if (!model.rendered && !isUnitTest) {
-      //     Future.delayed(
-      //       const Duration(milliseconds: 100),
-      //       model.refresh,
-      //     );
-      //   }
+                    //   // Try rebuilding again if the image isn't fully rendered
+                    //   // Can't do it if it's in a unit test cause it causes issues with timers running
+                    //   if (!model.rendered && !isUnitTest) {
+                    //     Future.delayed(
+                    //       const Duration(milliseconds: 100),
+                    //       model.refresh,
+                    //     );
+                    //   }
 
-      //   return Stack(
-      //     children: [
-      //       // Pannable field widget
-      //       InteractiveViewer(
-      //         transformationController: model.transformController,
-      //         constrained: true,
-      //         maxScale: 2,
-      //         minScale: 1,
-      //         panAxis: PanAxis.free,
-      //         clipBehavior: Clip.hardEdge,
-      //         trackpadScrollCausesScale: true,
-      //         child: ListenableBuilder(
-      //           listenable: Listenable.merge(listeners),
-      //           builder: (context, child) {
-      //             List<List<Offset>> trajectoryPoints = _getTrajectoryPoints(
-      //               model: model,
-      //               fieldCenter: fieldCenter,
-      //               scaleReduction: scaleReduction,
-      //             );
+                    //   return Stack(
+                    //     children: [
+                    //       // Pannable field widget
+                    //       InteractiveViewer(
+                    //         transformationController: model.transformController,
+                    //         constrained: true,
+                    //         maxScale: 2,
+                    //         minScale: 1,
+                    //         panAxis: PanAxis.free,
+                    //         clipBehavior: Clip.hardEdge,
+                    //         trackpadScrollCausesScale: true,
+                    //         child: ListenableBuilder(
+                    //           listenable: Listenable.merge(listeners),
+                    //           builder: (context, child) {
+                    //             List<List<Offset>> trajectoryPoints = _getTrajectoryPoints(
+                    //               model: model,
+                    //               fieldCenter: fieldCenter,
+                    //               scaleReduction: scaleReduction,
+                    //             );
 
-      //             List<Widget> otherObjects = _getOtherObjectWidgets(
-      //               model: model,
-      //               fieldCenter: fieldCenter,
-      //               scaleReduction: scaleReduction,
-      //             );
+                    //             List<Widget> otherObjects = _getOtherObjectWidgets(
+                    //               model: model,
+                    //               fieldCenter: fieldCenter,
+                    //               scaleReduction: scaleReduction,
+                    //             );
 
-      //             return Transform.scale(
-      //               scale: rotatedScaleReduction / scaleReduction,
-      //               child: Transform.rotate(
-      //                 angle: radians(model.fieldRotation),
-      //                 child: Stack(
-      //                   alignment: Alignment.center,
-      //                   children: [
-      //                     SizedBox(
-      //                       height: constraints.maxHeight,
-      //                       width: constraints.maxWidth,
-      //                       child: model.field.fieldImage,
-      //                     ),
-      //                     for (List<Offset> points in trajectoryPoints)
-      //                       CustomPaint(
-      //                         size: fittedSizes.destination,
-      //                         painter: TrajectoryPainter(
-      //                           center: fittedCenter,
-      //                           color: model.trajectoryColor,
-      //                           points: points,
-      //                           strokeWidth:
-      //                               model.trajectoryPointSize *
-      //                               model.field.pixelsPerMeterHorizontal *
-      //                               scaleReduction,
-      //                         ),
-      //                       ),
-      //                     ...otherObjects,
-      //                   ],
-      //                 ),
-      //               ),
-      //             );
-      //           },
-      //         ),
-      //       ),
-      //       // Robot, trajectories overlay
-      //       IgnorePointer(
-      //         ignoring: true,
-      //         child: InteractiveViewer(
-      //           transformationController: model.transformController,
-      //           clipBehavior: Clip.none,
-      //           child: ListenableBuilder(
-      //             listenable: Listenable.merge([
-      //               ...listeners,
-      //               model.transformController,
-      //             ]),
-      //             builder: (context, child) => _buildRobotOverlay(
-      //               model: model,
-      //               size: size,
-      //               scaleReduction: scaleReduction,
-      //               fieldCenter: fieldCenter,
-      //               rotatedScaleReduction: rotatedScaleReduction,
-      //               constraints: constraints,
-      //               fittedSizes: fittedSizes,
-      //               fittedCenter: fittedCenter,
-      //               controller: model.transformController,
-      //             ),
-      //           ),
-      //         ),
-      //       ),
-      //     ],
-      //   );
-      // },
-                        );
+                    //             return Transform.scale(
+                    //               scale: rotatedScaleReduction / scaleReduction,
+                    //               child: Transform.rotate(
+                    //                 angle: radians(model.fieldRotation),
+                    //                 child: Stack(
+                    //                   alignment: Alignment.center,
+                    //                   children: [
+                    //                     SizedBox(
+                    //                       height: constraints.maxHeight,
+                    //                       width: constraints.maxWidth,
+                    //                       child: model.field.fieldImage,
+                    //                     ),
+                    //                     for (List<Offset> points in trajectoryPoints)
+                    //                       CustomPaint(
+                    //                         size: fittedSizes.destination,
+                    //                         painter: TrajectoryPainter(
+                    //                           center: fittedCenter,
+                    //                           color: model.trajectoryColor,
+                    //                           points: points,
+                    //                           strokeWidth:
+                    //                               model.trajectoryPointSize *
+                    //                               model.field.pixelsPerMeterHorizontal *
+                    //                               scaleReduction,
+                    //                         ),
+                    //                       ),
+                    //                     ...otherObjects,
+                    //                   ],
+                    //                 ),
+                    //               ),
+                    //             );
+                    //           },
+                    //         ),
+                    //       ),
+                    //       // Robot, trajectories overlay
+                    //       IgnorePointer(
+                    //         ignoring: true,
+                    //         child: InteractiveViewer(
+                    //           transformationController: model.transformController,
+                    //           clipBehavior: Clip.none,
+                    //           child: ListenableBuilder(
+                    //             listenable: Listenable.merge([
+                    //               ...listeners,
+                    //               model.transformController,
+                    //             ]),
+                    //             builder: (context, child) => _buildRobotOverlay(
+                    //               model: model,
+                    //               size: size,
+                    //               scaleReduction: scaleReduction,
+                    //               fieldCenter: fieldCenter,
+                    //               rotatedScaleReduction: rotatedScaleReduction,
+                    //               constraints: constraints,
+                    //               fittedSizes: fittedSizes,
+                    //               fittedCenter: fittedCenter,
+                    //               controller: model.transformController,
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   );
+                    // },
+                  );
                 }
               } else {
                 List<double> objectPosition = objectPositionRaw
@@ -671,8 +686,8 @@ class FieldWidget extends NTWidget {
                       fieldCenter: fieldCenter,
                       scaleReduction: scale,
                     ),
-             );
-        }
+                  );
+                }
               }
               if (objectTrajectory.isNotEmpty) {
                 trajectoryPoints.add(objectTrajectory);
@@ -747,9 +762,10 @@ class FieldWidget extends NTWidget {
                               alignment: Alignment.center,
                               children: [
                                 Transform(
-                                  transform: Matrix4.identity(),//!model.allianceTopic.value
-                                      // ? Matrix4.diagonal3Values(-1, -1, 1)
-                                      // : Matrix4.identity(),
+                                  transform:
+                                      Matrix4.identity(), //!model.allianceTopic.value
+                                  // ? Matrix4.diagonal3Values(-1, -1, 1)
+                                  // : Matrix4.identity(),
                                   alignment: Alignment.center,
                                   child: SizedBox(
                                     width: imageDisplaySize.width,
@@ -773,32 +789,77 @@ class FieldWidget extends NTWidget {
                                     scale: scale,
                                   ),
                                 ),
-                                CustomPaint(//Hub Activation     //TODO: also use game specific data                
+                                CustomPaint(
+                                  //Hub Activation
                                   size: imageDisplaySize,
                                   painter: HubPainter(
-                                    center: imageDisplaySize.toOffset / 2, 
-                                    pos: (model.allianceTopic.value) ? Offset(4.62,4.04) : Offset(11.89,4.04), 
-                                    field: model.field, 
-                                    color: (bothHubEnabled || hubEnabled) ? ((shiftTimerNumber() > 8  || flashHub() || wontBeDisabled(false)) ? (model.allianceTopic.value ? Color.fromARGB(255, 0, 0, 255) : Color.fromARGB(255, 255, 0, 0)) : Color.fromARGB(255, 0, 0, 0)) : Color.fromARGB(255, 0, 0, 0),  
-                                    scale: scale
+                                    center: imageDisplaySize.toOffset / 2,
+                                    pos: (model.allianceTopic.value)
+                                        ? Offset(4.62, 4.04)
+                                        : Offset(11.89, 4.04),
+                                    field: model.field,
+                                    color: (bothHubEnabled || hubEnabled)
+                                        ? ((shiftTimerNumber() > 8 ||
+                                                  flashHub() ||
+                                                  wontBeDisabled(false))
+                                              ? (model.allianceTopic.value
+                                                    ? Color.fromARGB(
+                                                        255,
+                                                        0,
+                                                        0,
+                                                        255,
+                                                      )
+                                                    : Color.fromARGB(
+                                                        255,
+                                                        255,
+                                                        0,
+                                                        0,
+                                                      ))
+                                              : Color.fromARGB(255, 0, 0, 0))
+                                        : Color.fromARGB(255, 0, 0, 0),
+                                    scale: scale,
                                   ),
                                 ),
-                                CustomPaint(//Enemy Hub Activation                     
+                                CustomPaint(
+                                  //Enemy Hub Activation
                                   size: imageDisplaySize,
                                   painter: HubPainter(
-                                    center: imageDisplaySize.toOffset / 2, 
-                                    pos: (!model.allianceTopic.value) ? Offset(4.62,4.04) : Offset(11.89,4.04), 
-                                    field: model.field, 
-                                    color: (bothHubEnabled || !hubEnabled) ? ((shiftTimerNumber() > 8 || flashHub() || wontBeDisabled(true)) ? (!model.allianceTopic.value ? Color.fromARGB(255, 0, 0, 255) : Color.fromARGB(255, 255, 0, 0)) : Color.fromARGB(255, 0, 0, 0)) : (Color.fromARGB(255, 0, 0, 0)),  
-                                    scale: scale
+                                    center: imageDisplaySize.toOffset / 2,
+                                    pos: (!model.allianceTopic.value)
+                                        ? Offset(4.62, 4.04)
+                                        : Offset(11.89, 4.04),
+                                    field: model.field,
+                                    color: (bothHubEnabled || !hubEnabled)
+                                        ? ((shiftTimerNumber() > 8 ||
+                                                  flashHub() ||
+                                                  wontBeDisabled(true))
+                                              ? (!model.allianceTopic.value
+                                                    ? Color.fromARGB(
+                                                        255,
+                                                        0,
+                                                        0,
+                                                        255,
+                                                      )
+                                                    : Color.fromARGB(
+                                                        255,
+                                                        255,
+                                                        0,
+                                                        0,
+                                                      ))
+                                              : Color.fromARGB(255, 0, 0, 0))
+                                        : (Color.fromARGB(255, 0, 0, 0)),
+                                    scale: scale,
                                   ),
                                 ),
-                                CustomPaint(//aliance paint
+                                CustomPaint(
+                                  //aliance paint
                                   size: imageDisplaySize,
                                   painter: AlliancePainter(
                                     center: imageDisplaySize.toOffset / 2,
                                     field: model.field,
-                                    color: model.allianceTopic.value ? Color.fromARGB(255, 0, 0, 255) : Color.fromARGB(255, 255, 0, 0),                           
+                                    color: model.allianceTopic.value
+                                        ? Color.fromARGB(255, 0, 0, 255)
+                                        : Color.fromARGB(255, 255, 0, 0),
                                     width: imageDisplaySize.width,
                                     height: imageDisplaySize.height,
                                   ),
@@ -833,8 +894,8 @@ class FieldWidget extends NTWidget {
                                       scale: scale,
                                     ),
                                   ),
-                                if (model.showVisionTargets)                                  
-                                  CustomPaint(                                    
+                                if (model.showVisionTargets)
+                                  CustomPaint(
                                     size: imageDisplaySize,
                                     painter: VisionPainter(
                                       center: imageDisplaySize.toOffset / 2,
@@ -857,128 +918,220 @@ class FieldWidget extends NTWidget {
                                         // Offset(robotX+((cos(robotTheta-pi/2) * model.visionTopics.targetPose.dx) - (sin(robotTheta-pi/2) * model.visionTopics.targetPose.dy)),
                                         //       robotY+((sin(robotTheta-pi/2) * model.visionTopics.targetPose.dx) + (cos(robotTheta-pi/2) * model.visionTopics.targetPose.dy))),
 
-                                        //dynnamicaly add a offset here based on size of model.visionTopics.All_tags.value
+                                        //dynnamicaly add a offset here based on size of model.visionTopics.allTags.value
                                         //raw values, must me processed here.
-                                        for (int i = 0; i < model.visionTopics.All_tags.value.length / 7; i++)                                    
-                                            //model.visionTopics.All_tags.value[i*7+1] = X (Horizontal Offset From Principal Pixel To Target (degrees))
-                                            //model.visionTopics.All_tags.value[i*7+2] = Y (Vertical Offset From Principal Pixel To Target (degrees))
-                                            //model.visionTopics.All_tags.value[i*7+3] = ta (Target Area (0% of image to 100% of image))
-                                            //model.visionTopics.All_tags.value[i*7+4] = distToCamera
-                                            //model.visionTopics.All_tags.value[i*7+5] = distToRobot
-                                            //model.visionTopics.All_tags.value[i*7+6] = ambiguity (?)
+                                        for (
+                                          int i = 0;
+                                          i <
+                                              model
+                                                      .visionTopics
+                                                      .allTags
+                                                      .value
+                                                      .length /
+                                                  7;
+                                          i++
+                                        )
+                                          //model.visionTopics.allTags.value[i*7+1] = X (Horizontal Offset From Principal Pixel To Target (degrees))
+                                          //model.visionTopics.allTags.value[i*7+2] = Y (Vertical Offset From Principal Pixel To Target (degrees))
+                                          //model.visionTopics.allTags.value[i*7+3] = ta (Target Area (0% of image to 100% of image))
+                                          //model.visionTopics.allTags.value[i*7+4] = distToCamera
+                                          //model.visionTopics.allTags.value[i*7+5] = distToRobot
+                                          //model.visionTopics.allTags.value[i*7+6] = ambiguity (?)
+                                          // the message no longer contains metres – the two offsets are
+                                          // horizontal/vertical angles (degrees) from the principal pixel.
+                                          // convert them into a world‑frame point using the camera
+                                          // intrinsics (1280×800 in your case) and the camera’s
+                                          // extrinsics (XYZ + yaw/pitch/roll) before finally rotating/adding
+                                          // the robot pose.
+                                          () {
+                                            // raw values from the packet
+                                            // final double horizPix = model.visionTopics.allTags.value[i * 7 + 2] as double;
+                                            // final double vertPix   = model.visionTopics.allTags.value[i * 7 + 1] as double;
+                                            // final double distCam  = model.visionTopics.allTags.value[i * 7 + 4] as double;
 
-                                            // the message no longer contains metres – the two offsets are
-                                            // horizontal/vertical angles (degrees) from the principal pixel.
-                                            // convert them into a world‑frame point using the camera
-                                            // intrinsics (1280×800 in your case) and the camera’s
-                                            // extrinsics (XYZ + yaw/pitch/roll) before finally rotating/adding
-                                            // the robot pose.
-                                            (){
-                                              // raw values from the packet
-                                              // final double horizPix = model.visionTopics.All_tags.value[i * 7 + 2] as double;
-                                              // final double vertPix   = model.visionTopics.All_tags.value[i * 7 + 1] as double;
-                                              // final double distCam  = model.visionTopics.All_tags.value[i * 7 + 4] as double;
+                                            // // camera intrinsics
+                                            // // resolution constants – useful if you ever want to convert
+                                            // // pixel offsets instead of angle offsets
+                                            // const double camResX = 1280.0;
+                                            // const double camResY = 800.0;
+                                            // const double focalLength = 1600.0; // adjust based on your camera calibration (i don't fucking know)
 
-                                              // // camera intrinsics                                              
-                                              // // resolution constants – useful if you ever want to convert
-                                              // // pixel offsets instead of angle offsets
-                                              // const double camResX = 1280.0;
-                                              // const double camResY = 800.0;
-                                              // const double focalLength = 1600.0; // adjust based on your camera calibration (i don't fucking know)
+                                            // // convert pixel offsets to angles
+                                            // final double hRad = atan((horizPix - camResX / 2) / focalLength);
+                                            // final double vRad = atan((vertPix - camResY / 2) / focalLength);
 
-                                              // // convert pixel offsets to angles
-                                              // final double hRad = atan((horizPix - camResX / 2) / focalLength);
-                                              // final double vRad = atan((vertPix - camResY / 2) / focalLength);
+                                            // // build a direction vector in the camera coordinate system.
+                                            // // +z forward, +x right, +y down; magnitude = reported distance.
 
-                                              // // build a direction vector in the camera coordinate system.
-                                              // // +z forward, +x right, +y down; magnitude = reported distance.
-                                              
-                                              //values are in degrees (txnc & tync)
-                                              final double horizDeg = -model.visionTopics.All_tags.value[i * 7 + 2] as double;
-                                              final double vertDeg  =  model.visionTopics.All_tags.value[i * 7 + 1] as double;
-                                              final double distCam  =  model.visionTopics.All_tags.value[i * 7 + 4] as double;
-                                              
-                                              // convert offsets to radians
-                                              final double hRad = radians(horizDeg);
-                                              final double vRad = radians(vertDeg);
+                                            //values are in degrees (txnc & tync)
+                                            final double horizDeg =
+                                                -model
+                                                        .visionTopics
+                                                        .allTags
+                                                        .value[i * 7 + 2]
+                                                    as double;
+                                            final double vertDeg =
+                                                model
+                                                        .visionTopics
+                                                        .allTags
+                                                        .value[i * 7 + 1]
+                                                    as double;
+                                            final double distCam =
+                                                model
+                                                        .visionTopics
+                                                        .allTags
+                                                        .value[i * 7 + 4]
+                                                    as double;
 
-                                              // build a direction vector in the camera coordinate system.
-                                              // +z forward, +x right, +y down; magnitude = reported distance.
-                                              // Vector3 camVec = Vector3(
-                                              //   distCam * tan(hRad), // x
-                                              //   distCam * tan(vRad), // y
-                                              //   distCam,             // z
-                                              // );
+                                            // convert offsets to radians
+                                            final double hRad = radians(
+                                              horizDeg,
+                                            );
+                                            final double vRad = radians(
+                                              vertDeg,
+                                            );
 
-                                               Vector3 camVec = Vector3(
-                                                distCam * tan(hRad), // x
-                                                distCam * tan(vRad), // y
-                                                distCam,             // z
-                                              );
+                                            // build a direction vector in the camera coordinate system.
+                                            // +z forward, +x right, +y down; magnitude = reported distance.
+                                            // Vector3 camVec = Vector3(
+                                            //   distCam * tan(hRad), // x
+                                            //   distCam * tan(vRad), // y
+                                            //   distCam,             // z
+                                            // );
 
-                                              // apply the camera’s extrinsic transform (translation + yaw/pitch/roll)
-                                              final double camYaw   = radians(model.visionTopics.camera_data.value[3] ?? 0.0);
-                                              final double camPitch = radians(model.visionTopics.camera_data.value[4] ?? 0.0);
-                                              final double camRoll  = radians(model.visionTopics.camera_data.value[5] ?? 0.0);
-                                              Matrix4 camTransform = Matrix4.identity()
-                                                ..translateByVector3(Vector3(
-                                                      model.visionTopics.camera_data.value[0] ?? 0.0,
-                                                     -model.visionTopics.camera_data.value[1] ?? 0.0,
-                                                      model.visionTopics.camera_data.value[2] ?? 0.0))
-                                                ..rotateZ(camYaw)
-                                                ..rotateX(camPitch)
-                                                ..rotateY(camRoll);
-                                              Vector3 worldCam = camTransform.transform3(camVec);
+                                            Vector3 camVec = Vector3(
+                                              distCam * tan(hRad), // x
+                                              distCam * tan(vRad), // y
+                                              distCam, // z
+                                            );
 
-                                              // worldCam.x += (worldCam.x*distCam);
-                                              // worldCam.y += (worldCam.y*distCam);
-                                              
-                                              // worldCam.x += worldCam.x * distCam * cos(robotTheta-pi/2);
-                                              // worldCam.y += worldCam.y * distCam * sin(robotTheta-pi/2);
+                                            // apply the camera’s extrinsic transform (translation + yaw/pitch/roll)
+                                            final double camYaw = radians(
+                                              model
+                                                      .visionTopics
+                                                      .cameraData
+                                                      .value[3] ??
+                                                  0.0,
+                                            );
+                                            final double camPitch = radians(
+                                              model
+                                                      .visionTopics
+                                                      .cameraData
+                                                      .value[4] ??
+                                                  0.0,
+                                            );
+                                            final double camRoll = radians(
+                                              model
+                                                      .visionTopics
+                                                      .cameraData
+                                                      .value[5] ??
+                                                  0.0,
+                                            );
+                                            Matrix4 camTransform =
+                                                Matrix4.identity()
+                                                  ..translateByVector3(
+                                                    Vector3(
+                                                      model
+                                                              .visionTopics
+                                                              .cameraData
+                                                              .value[0] ??
+                                                          0.0,
+                                                      -model
+                                                              .visionTopics
+                                                              .cameraData
+                                                              .value[1] ??
+                                                          0.0,
+                                                      model
+                                                              .visionTopics
+                                                              .cameraData
+                                                              .value[2] ??
+                                                          0.0,
+                                                    ),
+                                                  )
+                                                  ..rotateZ(camYaw)
+                                                  ..rotateX(camPitch)
+                                                  ..rotateY(camRoll);
+                                            Vector3 worldCam = camTransform
+                                                .transform3(camVec);
 
-                                              // rotate/translate into field coordinates using robot pose
-                                              double cosR = cos(robotTheta);
-                                              double sinR = sin(robotTheta);
-                                              worldCam.x *= (cosR * distCam);
-                                              worldCam.y *= (sinR * distCam);
-                                              // worldCam.x *= distCam;
-                                              // worldCam.y *= distCam;
-                                              
-                                              double xField = robotX +
-                                                  (cosR * worldCam.x - sinR * worldCam.y);//*distCam;
-                                              double yField = robotY +
-                                                  (sinR * worldCam.x + cosR * worldCam.y);//*distCam;
+                                            // worldCam.x += (worldCam.x*distCam);
+                                            // worldCam.y += (worldCam.y*distCam);
 
-                                              //logger.debug('Cam: ${model.visionTopics.camera_data.value} = ${Offset(xField, yField)} vrs ${Offset(robotX+((cos(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+1] as double)) - (sin(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+2] as double))), robotY+((sin(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+1] as double)) + (cos(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+2] as double))))}');
-                                              return Offset(xField, yField);
-                                            }(),
-                                          // robotX+((cos(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+1] as double)) - (sin(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+2] as double))),
-                                          // robotY+((sin(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+1] as double)) + (cos(robotTheta-pi/2) * (model.visionTopics.All_tags.value[i*7+2] as double))),
+                                            // worldCam.x += worldCam.x * distCam * cos(robotTheta-pi/2);
+                                            // worldCam.y += worldCam.y * distCam * sin(robotTheta-pi/2);
+
+                                            // rotate/translate into field coordinates using robot pose
+                                            double cosR = cos(robotTheta);
+                                            double sinR = sin(robotTheta);
+                                            worldCam.x *= (cosR * distCam);
+                                            worldCam.y *= (sinR * distCam);
+                                            // worldCam.x *= distCam;
+                                            // worldCam.y *= distCam;
+
+                                            double xField =
+                                                robotX +
+                                                (cosR * worldCam.x -
+                                                    sinR *
+                                                        worldCam.y); //*distCam;
+                                            double yField =
+                                                robotY +
+                                                (sinR * worldCam.x +
+                                                    cosR *
+                                                        worldCam.y); //*distCam;
+
+                                            //logger.debug('Cam: ${model.visionTopics.cameraData.value} = ${Offset(xField, yField)} vrs ${Offset(robotX+((cos(robotTheta-pi/2) * (model.visionTopics.allTags.value[i*7+1] as double)) - (sin(robotTheta-pi/2) * (model.visionTopics.allTags.value[i*7+2] as double))), robotY+((sin(robotTheta-pi/2) * (model.visionTopics.allTags.value[i*7+1] as double)) + (cos(robotTheta-pi/2) * (model.visionTopics.allTags.value[i*7+2] as double))))}');
+                                            return Offset(xField, yField);
+                                          }(),
+                                        // robotX+((cos(robotTheta-pi/2) * (model.visionTopics.allTags.value[i*7+1] as double)) - (sin(robotTheta-pi/2) * (model.visionTopics.allTags.value[i*7+2] as double))),
+                                        // robotY+((sin(robotTheta-pi/2) * (model.visionTopics.allTags.value[i*7+1] as double)) + (cos(robotTheta-pi/2) * (model.visionTopics.allTags.value[i*7+2] as double))),
                                       ],
                                       statuses: [
-                                          [
-                                            for (int i = 0; i < model.visionTopics.All_tags.value.length / 7; i++)
-                                              model.visionTopics.All_tags.value[i*7],
-                                          ],
-                                          [
-                                            for (int i = 0; i < model.visionTopics.All_tags.value.length / 7; i++)
-                                              model.visionTopics.All_tags.value[i*7+4],
-                                          ]
+                                        [
+                                          for (
+                                            int i = 0;
+                                            i <
+                                                model
+                                                        .visionTopics
+                                                        .allTags
+                                                        .value
+                                                        .length /
+                                                    7;
+                                            i++
+                                          )
+                                            model.visionTopics.allTags.value[i *
+                                                7],
+                                        ],
+                                        [
+                                          for (
+                                            int i = 0;
+                                            i <
+                                                model
+                                                        .visionTopics
+                                                        .allTags
+                                                        .value
+                                                        .length /
+                                                    7;
+                                            i++
+                                          )
+                                            model.visionTopics.allTags.value[i *
+                                                    7 +
+                                                4],
+                                        ],
                                       ],
-                                      
+
                                       color: model.visionTargetColor,
                                       markerSize: model.visionMarkerSize,
                                       scale: scale,
                                     ),
                                     //#TODO: put apriltag ID and position.
                                     // child: Text(
-                                    //   'ID: ${model.visionTopics.All_tags.value.isEmpty ? '?' : model.visionTopics.All_tags.value[0] ?? '?'}',
+                                    //   'ID: ${model.visionTopics.allTags.value.isEmpty ? '?' : model.visionTopics.allTags.value[0] ?? '?'}',
                                     //   style:
                                     //     Theme.of(
                                     //       context,
                                     //     ).textTheme.bodySmall?.copyWith(
                                     //       color: Colors.white,
-                                    //       fontSize: 8,                                            
+                                    //       fontSize: 8,
                                     //     ),
                                     // ),
                                   ),
@@ -993,7 +1146,8 @@ class FieldWidget extends NTWidget {
                                       isPoseStruct: model.isPoseStruct,
                                       isPoseArrayStruct:
                                           model.isPoseArrayStruct,
-                                      robotColor: model.gamePieceColor,//robotColor,
+                                      robotColor:
+                                          model.gamePieceColor, //robotColor,
                                       objectSize: model.otherObjectSize,
                                       scale: scale,
                                     ),
@@ -1010,40 +1164,40 @@ class FieldWidget extends NTWidget {
                                     ),
                                   ),
                                 SizedBox(
-                                  width: imageDisplaySize.width*0.95,
-                                  height: imageDisplaySize.height*0.95,
+                                  width: imageDisplaySize.width * 0.95,
+                                  height: imageDisplaySize.height * 0.95,
                                   // child: Positioned(
                                   //   top: 0,
                                   //   left: 0,
                                   //   right: 0,
-                                    // child: ClipRect(
-                                      child: Center(
-                                        child: Column(
+                                  // child: ClipRect(
+                                  child: Center(
+                                    child: Column(
+                                      children: [
+                                        const Spacer(flex: 1),
+                                        //matchDisplayWidget,
+                                        Row(
                                           children: [
-                                            const Spacer(flex: 1),
-                                            //matchDisplayWidget,
-                                            Row(
-                                              children: [
-                                                fmsDisplayIcon,
-                                                const SizedBox(width: 5),
-                                                Text(fmsDisplayString),
-                                              ],
-                                            ),                      
-                                            Row(
-                                              children: [
-                                                dsDisplayIcon,
-                                                const SizedBox(width: 5),
-                                                Text(dsDisplayString),
-                                              ],
-                                            ),
-                                          const Spacer(),
-                                          // Robot State
-                                          robotStateWidget,
+                                            fmsDisplayIcon,
+                                            const SizedBox(width: 5),
+                                            Text(fmsDisplayString),
                                           ],
                                         ),
-                                      ),
+                                        Row(
+                                          children: [
+                                            dsDisplayIcon,
+                                            const SizedBox(width: 5),
+                                            Text(dsDisplayString),
+                                          ],
+                                        ),
+                                        const Spacer(),
+                                        // Robot State
+                                        robotStateWidget,
+                                      ],
                                     ),
-                                  // ),
+                                  ),
+                                ),
+                                // ),
                                 // ),
                               ],
                             ),
@@ -1053,14 +1207,14 @@ class FieldWidget extends NTWidget {
                     ),
                   ),
                 ),
-                
+
                 Positioned(
                   top: 2,
                   left: 0,
                   right: 0,
-                  child: Center(    
-                    child: Column( 
-                      children: [               
+                  child: Center(
+                    child: Column(
+                      children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -1072,45 +1226,64 @@ class FieldWidget extends NTWidget {
                                 vertical: 2.0,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.5 * 255),
+                                color: Colors.black.withValues(
+                                  alpha: 0.5 * 255,
+                                ),
                                 borderRadius: BorderRadius.circular(4.0),
                               ),
-                              //child: matchDisplayWidget,                      
+                              //child: matchDisplayWidget,
                               child: Text(
                                 //'X: ${robotX.toStringAsFixed(2)}, Y: ${robotY.toStringAsFixed(2)}, Heading: ${degrees(robotTheta).toStringAsFixed(2)}°',
-                                'X: ${formatDouble(robotX,2,2)}, Y: ${formatDouble(robotY,2,2)}, Heading: ${formatDouble(degrees(robotTheta),2,3)}°',
+                                'X: ${formatDouble(robotX, 2, 2)}, Y: ${formatDouble(robotY, 2, 2)}, Heading: ${formatDouble(degrees(robotTheta), 2, 3)}°',
                                 style:
-                                  Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.copyWith(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
-                              ),                          
+                                    Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall?.copyWith(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                    ),
+                              ),
                             ),
                             if (!emptyString(gameMessage))
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                                vertical: 2.0,
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                  vertical: 2.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: gameMessage == 'R'
+                                      ? const Color.fromARGB(
+                                          255,
+                                          255,
+                                          0,
+                                          0,
+                                        ).withValues(alpha: 0.5 * 255)
+                                      : gameMessage == 'B'
+                                      ? const Color.fromARGB(
+                                          255,
+                                          0,
+                                          0,
+                                          255,
+                                        ).withValues(alpha: 0.5 * 255)
+                                      : const Color.fromARGB(
+                                          255,
+                                          255,
+                                          125,
+                                          0,
+                                        ).withValues(alpha: 0.5 * 255),
+                                  borderRadius: BorderRadius.circular(4.0),
+                                ),
+                                child: Text(
+                                  gameMessage,
+                                  style:
+                                      Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall?.copyWith(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                      ),
+                                ),
                               ),
-                              decoration: BoxDecoration(
-                                color: gameMessage == 'R' ? const Color.fromARGB(255, 255, 0, 0).withValues(alpha: 0.5 * 255) : 
-                                        gameMessage == 'B' ? const Color.fromARGB(255, 0, 0, 255).withValues(alpha: 0.5 * 255) : 
-                                        const Color.fromARGB(255, 255, 125, 0).withValues(alpha: 0.5 * 255),
-                                borderRadius: BorderRadius.circular(4.0),
-                              ),                     
-                              child: Text(
-                                gameMessage,
-                                style:
-                                  Theme.of(
-                                    context,
-                                  ).textTheme.bodySmall?.copyWith(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
-                              ),                          
-                            ),
                           ],
                         ),
                       ],
@@ -1122,44 +1295,40 @@ class FieldWidget extends NTWidget {
                     //for right sided:
                     // bottom: 10,
                     // left: size.width-40,
-                    top: size.height-30,
+                    top: size.height - 30,
                     left: 0,
-                    right: 0,                  
+                    right: 0,
                     child: Center(
-                    //for right sided:
+                      //for right sided:
                       // child: RotatedBox(
                       // quarterTurns: 3, // rotate -90°
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0,
-                            vertical: 2.0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 122, 79, 14),
-                            borderRadius: BorderRadius.circular(4.0),
-                          ),
-                          child: Text(
-                            'X: ${pose.dx.toStringAsFixed(2)}, Y: ${pose.dy.toStringAsFixed(2)}',
-                            style:
-                                Theme.of(
-                                  context,
-                                ).textTheme.bodySmall?.copyWith(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                ),
-                          ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 2.0,
                         ),
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 122, 79, 14),
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: Text(
+                          'X: ${pose.dx.toStringAsFixed(2)}, Y: ${pose.dy.toStringAsFixed(2)}',
+                          style:
+                              Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.copyWith(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                        ),
+                      ),
                       // ),
                     ),
                   ),
               ],
-              
             ),
-            
           );
-          
         },
-        
       ),
     );
   }

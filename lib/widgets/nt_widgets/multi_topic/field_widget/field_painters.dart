@@ -74,7 +74,8 @@ class RobotPainter extends CustomPainter {
         Offset.zero & imageSize,
       );
       canvas.drawImageRect(robotImage!, sourceRect, outputRect, Paint());
-    }  {
+    }
+    {
       // Fallback to drawing a shape if no image is provided
       final Paint paint = Paint()
         ..color = robotColor
@@ -136,7 +137,7 @@ class AlliancePainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 5;
-    final Offset markerCenter = Offset(center.dx,center.dy);
+    final Offset markerCenter = Offset(center.dx, center.dy);
     final Rect rect = Rect.fromCenter(
       center: markerCenter,
       height: height,
@@ -162,7 +163,7 @@ class HubPainter extends CustomPainter {
     required this.pos,
     required this.field,
     required this.color,
-    required this.scale,//test if i can remove this
+    required this.scale, //test if i can remove this
   });
 
   @override
@@ -171,50 +172,49 @@ class HubPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = 5;
-      final Paint highlight_paint = Paint()
+    final Paint highlightPaint = Paint()
       ..color = ui.Color.fromARGB(255, 255, 255, 0)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 5;
-      const double radius = 100;
+    const double radius = 100;
     // final Paint Remover_paint = Paint()
     //   //..color = color
     //   ..blendMode = BlendMode.xor
     //   ..style = PaintingStyle.fill;
 
-    double local_radius = radius * scale;
+    double localRadius = radius * scale;
     double xFromCenter =
-          (pos.dx * field.pixelsPerMeterHorizontal - field.center.dx) * scale;
-      double yFromCenter =
-          (field.center.dy - (pos.dy * field.pixelsPerMeterVertical)) * scale;
+        (pos.dx * field.pixelsPerMeterHorizontal - field.center.dx) * scale;
+    double yFromCenter =
+        (field.center.dy - (pos.dy * field.pixelsPerMeterVertical)) * scale;
 
-      final Offset markerCenter = Offset(
-        center.dx + xFromCenter,
-        center.dy + yFromCenter,
-      );
+    final Offset markerCenter = Offset(
+      center.dx + xFromCenter,
+      center.dy + yFromCenter,
+    );
 
-        // Rectangle
-        // final Rect rect = Rect.fromCenter(
-        //   center: markerCenter,
-        //   width: local_radius,
-        //   height: local_radius,
-        // );
-        //paint.shader = LinearGradient(colors: [color,Color.from(alpha: 255-color.a, red: 255-color.r, green: 255-color.g, blue: 255-color.b)]).createShader(rect);
-        // canvas.drawRect(rect, paint);
+    // Rectangle
+    // final Rect rect = Rect.fromCenter(
+    //   center: markerCenter,
+    //   width: local_radius,
+    //   height: local_radius,
+    // );
+    //paint.shader = LinearGradient(colors: [color,Color.from(alpha: 255-color.a, red: 255-color.r, green: 255-color.g, blue: 255-color.b)]).createShader(rect);
+    // canvas.drawRect(rect, paint);
 
-        // textPainter.paint(
-        //   canvas,
-        //   markerCenter + Offset(markerSize / 2 - textPainter.width, - textPainter.height / 2),
-        // );
+    // textPainter.paint(
+    //   canvas,
+    //   markerCenter + Offset(markerSize / 2 - textPainter.width, - textPainter.height / 2),
+    // );
 
-        if (color != ui.Color.fromARGB(255, 0, 0, 0)) canvas.drawCircle(markerCenter, local_radius+5, highlight_paint);
-        canvas.drawCircle(markerCenter, local_radius, paint);
-        // canvas.drawArc(rect, 0, radians(270), true, paint);
-        // paint.color = ui.Color.fromARGB(255, 255, 255, 255);
-        // canvas.drawArc(rect, 270, radians(359.99), true, paint);
-        // canvas.drawCircle(markerCenter, _radius/2-5, Remover_paint);
-
-
-
+    if (color != ui.Color.fromARGB(255, 0, 0, 0)) {
+      canvas.drawCircle(markerCenter, localRadius + 5, highlightPaint);
+    }
+    canvas.drawCircle(markerCenter, localRadius, paint);
+    // canvas.drawArc(rect, 0, radians(270), true, paint);
+    // paint.color = ui.Color.fromARGB(255, 255, 255, 255);
+    // canvas.drawArc(rect, 270, radians(359.99), true, paint);
+    // canvas.drawCircle(markerCenter, _radius/2-5, Remover_paint);
   }
 
   @override
@@ -262,9 +262,10 @@ class VisionPainter extends CustomPainter {
         center.dy + yFromCenter,
       );
 
-       TextPainter textPainter = TextPainter(
+      TextPainter textPainter = TextPainter(
         text: TextSpan(
-          text: 'ID${statuses[0].isEmpty ? '?' : (statuses[0][i] as num?)?.toInt()}\n${statuses[1].isEmpty ? '?' : statuses[1][i].toStringAsFixed(2)}',
+          text:
+              'ID${statuses[0].isEmpty ? '?' : (statuses[0][i] as num?)?.toInt()}\n${statuses[1].isEmpty ? '?' : statuses[1][i].toStringAsFixed(2)}',
           style: TextStyle(
             color: Colors.white,
             fontSize: 8,
@@ -283,7 +284,7 @@ class VisionPainter extends CustomPainter {
       //       context,
       //     ).textTheme.bodySmall?.copyWith(
       //       color: Colors.white,
-      //       fontSize: 8,                                            
+      //       fontSize: 8,
       //     ),
       // ),
 
@@ -307,18 +308,19 @@ class VisionPainter extends CustomPainter {
       //     canvas.drawCircle(markerCenter, markerSize / 2, paint);
       //   }
       // } else {
-        // Rectangle
-        final Rect rect = Rect.fromCenter(
-          center: markerCenter,
-          width: markerSize,
-          height: markerSize,
-        );
-        canvas.drawRect(rect, paint);
+      // Rectangle
+      final Rect rect = Rect.fromCenter(
+        center: markerCenter,
+        width: markerSize,
+        height: markerSize,
+      );
+      canvas.drawRect(rect, paint);
 
-        textPainter.paint(
-          canvas,
-          markerCenter + Offset(markerSize / 2 - textPainter.width, - textPainter.height / 2),
-        );
+      textPainter.paint(
+        canvas,
+        markerCenter +
+            Offset(markerSize / 2 - textPainter.width, -textPainter.height / 2),
+      );
       // }
     }
   }
@@ -570,15 +572,18 @@ class OtherObjectsPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.25;
     final Path crossPath = Path()
-      ..moveTo(length/2, -width/2)
-      ..lineTo(-length/2, width/2)
-      ..moveTo(-length/2, -width/2)
-      ..lineTo(length/2, width/2)
+      ..moveTo(length / 2, -width / 2)
+      ..lineTo(-length / 2, width / 2)
+      ..moveTo(-length / 2, -width / 2)
+      ..lineTo(length / 2, width / 2)
       ..close();
     canvas.drawPath(crossPath, crossPaint);
 
-    
-    canvas.drawCircle(Offset.zero, width / 4, crossPaint..color = Colors.pinkAccent);
+    canvas.drawCircle(
+      Offset.zero,
+      width / 4,
+      crossPaint..color = Colors.pinkAccent,
+    );
 
     canvas.restore();
   }

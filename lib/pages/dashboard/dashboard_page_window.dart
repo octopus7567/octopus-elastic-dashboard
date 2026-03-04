@@ -46,7 +46,6 @@ mixin DashboardPageWindow on DashboardPageViewModel {
     await windowManager.setResizable(false);
 
     await windowManager.setAsFrameless();
-
   }
 
   @override
@@ -72,7 +71,7 @@ mixin DashboardPageWindow on DashboardPageViewModel {
       );
       return;
     }
-    showDialog(      
+    showDialog(
       barrierDismissible: false,
       context: context,
       builder: (context) => AlertDialog(

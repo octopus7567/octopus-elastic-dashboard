@@ -19,7 +19,6 @@ import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/differential_dr
 import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/encoder_widget.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/field_widget/field_model.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/field_widget/field_widget.dart';
-// import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/field_widget.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/fms_info.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/gyro.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/motor_controller.dart';
@@ -49,6 +48,8 @@ import 'package:elastic_dashboard/widgets/nt_widgets/single_topic/text_display.d
 import 'package:elastic_dashboard/widgets/nt_widgets/single_topic/toggle_button.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/single_topic/toggle_switch.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/single_topic/voltage_view.dart';
+
+// import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/field_widget.dart';
 
 typedef NTModelJsonProvider<T extends NTWidgetModel> =
     T Function({
@@ -90,7 +91,7 @@ class NTWidgetRegistry {
   static final Map<String, double> _defaultWidthMap = {};
   static final Map<String, double> _defaultHeightMap = {};
 
-  static const double _normalSize = 128.0/2;
+  static const double _normalSize = 128.0 / 2;
 
   NTWidgetRegistry._();
 
@@ -130,7 +131,7 @@ class NTWidgetRegistry {
       model: NumberBarModel.new,
       widget: NumberBar.new,
       fromJson: NumberBarModel.fromJson,
-      minHeight: _normalSize*2,
+      minHeight: _normalSize * 2,
     );
 
     registerSingleTopic(

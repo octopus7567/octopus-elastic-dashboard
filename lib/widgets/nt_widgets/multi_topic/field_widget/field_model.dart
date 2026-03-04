@@ -9,8 +9,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:elastic_dashboard/services/field_images.dart';
 import 'package:elastic_dashboard/services/nt4_client.dart';
-import 'package:elastic_dashboard/services/text_formatter_builder.dart';
 import 'package:elastic_dashboard/services/struct_schemas/pose2d_struct.dart';
+import 'package:elastic_dashboard/services/text_formatter_builder.dart';
 import 'package:elastic_dashboard/widgets/dialog_widgets/dialog_color_picker.dart';
 import 'package:elastic_dashboard/widgets/dialog_widgets/dialog_dropdown_chooser.dart';
 import 'package:elastic_dashboard/widgets/dialog_widgets/dialog_text_input.dart';
@@ -18,7 +18,6 @@ import 'package:elastic_dashboard/widgets/dialog_widgets/dialog_toggle_switch.da
 import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/field_widget/field_topics.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/field_widget/special_marker_topics.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/nt_widget.dart';
-
 
 enum FieldObjectType { robot, trajectory, otherObject }
 
@@ -55,7 +54,6 @@ class FieldWidgetModel extends MultiTopicNTWidgetModel {
   late final CommanderTopics commanderTopics;
   late final SpecialMarkerTopics specialMarkerTopics;
 
-  
   String get eventNameTopic => '/FMSInfo/EventName';
   String get controlDataTopic => '/FMSInfo/FMSControlData';
   String get gameSpecificMessageTopic => '/FMSInfo/GameSpecificMessage';
@@ -64,12 +62,12 @@ class FieldWidgetModel extends MultiTopicNTWidgetModel {
   String get replayNumberTopic => '/FMSInfo/ReplayNumber';
   String get stationNumberTopic => '/FMSInfo/StationNumber';
 
-
-  //season specific  
-  String get hubEnabledTopic => '/SmartDashboard/GameData/Current Shift/HubEnabled';
-  String get shiftTimerTopic => '/SmartDashboard/GameData/Current Shift/Time left';
+  //season specific
+  String get hubEnabledTopic =>
+      '/SmartDashboard/GameData/Current Shift/HubEnabled';
+  String get shiftTimerTopic =>
+      '/SmartDashboard/GameData/Current Shift/Time left';
   String get currentShiftTopic => '/SmartDashboard/GameData/CurrentNum';
-
 
   late NT4Subscription eventNameSubscription;
   late NT4Subscription controlDataSubscription;
@@ -145,7 +143,6 @@ class FieldWidgetModel extends MultiTopicNTWidgetModel {
     _loadImage();
     refresh();
   }
-
 
   // const FMSInfo({super.key}) : super();
 
@@ -452,12 +449,8 @@ class FieldWidgetModel extends MultiTopicNTWidgetModel {
   void initializeSubscriptions() {
     otherObjectSubscriptions.clear();
 
-    robotSubscription = ntConnection.subscribe(
-      robotTopicName,
-      super.period
-    );
+    robotSubscription = ntConnection.subscribe(robotTopicName, super.period);
 
-    
     eventNameSubscription = ntConnection.subscribe(
       eventNameTopic,
       super.period,
@@ -501,7 +494,6 @@ class FieldWidgetModel extends MultiTopicNTWidgetModel {
     gamePieceTopics.initialize();
     allianceTopic.initialize();
     specialMarkerTopics.initialize();
-    
   }
 
   @override

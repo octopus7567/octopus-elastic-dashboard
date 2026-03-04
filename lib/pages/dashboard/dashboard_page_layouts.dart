@@ -516,7 +516,6 @@ mixin DashboardPageLayouts on DashboardPageViewModel {
     onDriverStationDocked();
     await preferences.setBool(PrefKeys.autoResizeToDS, true);
     //update window size
-    
   }
 
   @override
