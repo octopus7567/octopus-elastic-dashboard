@@ -137,6 +137,11 @@ class FieldWidget extends NTWidget {
           int matchType = tryCast(model.matchTypeSubscription.value) ?? 0;
           int replayNumber = tryCast(model.replayNumberSubscription.value) ?? 0;
 
+          
+          bool hubEnabled = tryCast(model.hubEnabledSubscription.value) ?? false;
+          double shiftTimerNumber = tryCast(model.shiftTimerSubscription.value) ?? 0;
+          bool flashHub=(shiftTimerNumber*10%2)>0.6;
+
           String eventNameDisplay = '$eventName${(eventName != '') ? ' ' : ''}';
           String matchTypeString = _getMatchTypeString(matchType);
           String replayNumberDisplay = (replayNumber != 0)
@@ -729,6 +734,28 @@ class FieldWidget extends NTWidget {
                                     robotColor: model.robotColor,
                                     robotImage: model.robotImage,
                                     scale: scale,
+                                  ),
+                                ),
+                                CustomPaint(//Hub Activation                     
+                                  size: imageDisplaySize,
+                                  painter: HubPainter(
+                                    center: imageDisplaySize.toOffset / 2, 
+                                    pos: (model.allianceTopic.value) ? Offset(4.62,4.04) : Offset(11.89,4.04), 
+                                    field: model.field, 
+                                    color: hubEnabled ? ((shiftTimerNumber > 5) ? (model.allianceTopic.value ? Color.fromARGB(255, 0, 0, 255) : Color.fromARGB(255, 255, 0, 0)) : Color.fromARGB(255, flashHub?255:0, flashHub?255:0, flashHub?255:0)) : Color.fromARGB(255, 0, 0, 0),  
+                                    radius: 100,
+                                    scale: scale
+                                  ),
+                                ),
+                                CustomPaint(//Enemy Hub Activation                     
+                                  size: imageDisplaySize,
+                                  painter: HubPainter(
+                                    center: imageDisplaySize.toOffset / 2, 
+                                    pos: (!model.allianceTopic.value) ? Offset(4.62,4.04) : Offset(11.89,4.04), 
+                                    field: model.field, 
+                                    color: !hubEnabled ? ((shiftTimerNumber > 5) ? (!model.allianceTopic.value ? Color.fromARGB(255, 0, 0, 255) : Color.fromARGB(255, 255, 0, 0)) : Color.fromARGB(255, flashHub?255:0, flashHub?255:0, flashHub?255:0)) : (Color.fromARGB(255, 0, 0, 0)),  
+                                    radius: 100,
+                                    scale: scale
                                   ),
                                 ),
                                 CustomPaint(//aliance paint

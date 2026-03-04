@@ -64,12 +64,20 @@ class FieldWidgetModel extends MultiTopicNTWidgetModel {
   String get replayNumberTopic => '/FMSInfo/ReplayNumber';
   String get stationNumberTopic => '/FMSInfo/StationNumber';
 
+
+  //season specific  
+  String get hubEnabledTopic => '/SmartDashboard/GameData/Current Shift/HubEnabled';
+  String get shiftTimerTopic => '/SmartDashboard/GameData/Current Shift/Time left';
+
+
   late NT4Subscription eventNameSubscription;
   late NT4Subscription controlDataSubscription;
   late NT4Subscription gameSpecificMessageSubscription;
   late NT4Subscription matchNumberSubscription;
   late NT4Subscription matchTypeSubscription;
   late NT4Subscription replayNumberSubscription;
+  late NT4Subscription hubEnabledSubscription;
+  late NT4Subscription shiftTimerSubscription;
 
   @override
   List<NT4Subscription> get subscriptions => [
@@ -86,6 +94,9 @@ class FieldWidgetModel extends MultiTopicNTWidgetModel {
     matchNumberSubscription,
     matchTypeSubscription,
     replayNumberSubscription,
+    //season specific
+    hubEnabledSubscription,
+    shiftTimerSubscription,
   ];
 
   bool rendered = false;
@@ -466,6 +477,16 @@ class FieldWidgetModel extends MultiTopicNTWidgetModel {
     );
     replayNumberSubscription = ntConnection.subscribe(
       replayNumberTopic,
+      super.period,
+    );
+
+    //season specific
+    hubEnabledSubscription = ntConnection.subscribe(
+      hubEnabledTopic,
+      super.period,
+    );
+    shiftTimerSubscription = ntConnection.subscribe(
+      shiftTimerTopic,
       super.period,
     );
 

@@ -150,6 +150,74 @@ class AlliancePainter extends CustomPainter {
       oldDelegate.color != color;
 }
 
+class HubPainter extends CustomPainter {
+  final Offset center;
+  final Offset pos;
+  final Field field;
+  final Color color;
+  final double radius;
+  final double scale;
+
+  HubPainter({
+    required this.center,
+    required this.pos,
+    required this.field,
+    required this.color,
+    required this.radius,
+    required this.scale,//test if i can remove this
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5;
+    // final Paint Remover_paint = Paint()
+    //   //..color = color
+    //   ..blendMode = BlendMode.xor
+    //   ..style = PaintingStyle.fill;
+
+    double local_radius = radius * scale;
+    double xFromCenter =
+          (pos.dx * field.pixelsPerMeterHorizontal - field.center.dx) * scale;
+      double yFromCenter =
+          (field.center.dy - (pos.dy * field.pixelsPerMeterVertical)) * scale;
+
+      final Offset markerCenter = Offset(
+        center.dx + xFromCenter,
+        center.dy + yFromCenter,
+      );
+
+        // Rectangle
+        final Rect rect = Rect.fromCenter(
+          center: markerCenter,
+          width: local_radius,
+          height: local_radius,
+        );
+        //paint.shader = LinearGradient(colors: [color,Color.from(alpha: 255-color.a, red: 255-color.r, green: 255-color.g, blue: 255-color.b)]).createShader(rect);
+        // canvas.drawRect(rect, paint);
+
+        // textPainter.paint(
+        //   canvas,
+        //   markerCenter + Offset(markerSize / 2 - textPainter.width, - textPainter.height / 2),
+        // );
+
+        canvas.drawCircle(markerCenter, local_radius, paint);
+        // canvas.drawArc(rect, 0, radians(270), true, paint);
+        // paint.color = ui.Color.fromARGB(255, 255, 255, 255);
+        // canvas.drawArc(rect, 270, radians(359.99), true, paint);
+        // canvas.drawCircle(markerCenter, _radius/2-5, Remover_paint);
+
+
+
+  }
+
+  @override
+  bool shouldRepaint(covariant HubPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
 class VisionPainter extends CustomPainter {
   final Offset center;
   final Field field;
