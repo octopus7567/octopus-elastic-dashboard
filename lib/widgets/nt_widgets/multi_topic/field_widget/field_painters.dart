@@ -11,6 +11,8 @@ import 'package:elastic_dashboard/services/nt4_client.dart';
 import 'package:elastic_dashboard/services/struct_schemas/pose2d_struct.dart';
 import 'package:elastic_dashboard/widgets/nt_widgets/multi_topic/field_widget/special_marker_topics.dart';
 
+//import 'package:patterns_canvas/patterns_canvas.dart';
+
 class RobotPainter extends CustomPainter {
   final Offset center;
   final Field field;
@@ -80,7 +82,7 @@ class RobotPainter extends CustomPainter {
       final Paint paint = Paint()
         ..color = robotColor
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 5.0;
+        ..strokeWidth = 2.5;
       final RRect robotRect = RRect.fromRectAndRadius(
         Rect.fromCenter(
           center: Offset.zero,
@@ -122,6 +124,7 @@ class AlliancePainter extends CustomPainter {
   final Color color;
   final double height;
   final double width;
+  final int status;
 
   AlliancePainter({
     required this.center,
@@ -129,21 +132,42 @@ class AlliancePainter extends CustomPainter {
     required this.color,
     required this.height,
     required this.width,
+    required this.status,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
+    final double strokeWidth = 8;
     final Paint paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 5;
+      ..strokeWidth = strokeWidth;
     final Offset markerCenter = Offset(center.dx, center.dy);
     final Rect rect = Rect.fromCenter(
       center: markerCenter,
-      height: height,
-      width: width,
+      height: height - strokeWidth * .5,
+      width: width - strokeWidth * .5,
     );
-    canvas.drawRect(rect, paint);
+    final RRect rrect = RRect.fromRectXY(rect, strokeWidth, strokeWidth);
+
+    if (status == 1) //disabled
+    {
+      paint.colorFilter = ColorFilter.saturation(0.25);
+      // canvas.drawRect(rect, paint);
+    } else if (status == 2) //emergency stop
+    {
+      paint.invertColors = true;
+      // canvas.drawRect(rect, paint);
+      // Rect rect = Rect.fromLTWH(0, 0, size.width, size.height);
+      // const DiagonalStripesThick(
+      //   bgColor: Colors.black,
+      //   fgColor: Colors.yellow,
+      //   featuresCount: 10,
+      // ).paintOnRect(canvas, size, rect);
+    }
+    // else{
+    // }
+    canvas.drawRRect(rrect, paint);
   }
 
   @override
@@ -157,32 +181,39 @@ class HubPainter extends CustomPainter {
   final Field field;
   final Color color;
   final double scale;
+  final bool enemy;
 
   HubPainter({
     required this.center,
     required this.pos,
     required this.field,
     required this.color,
-    required this.scale, //test if i can remove this
+    required this.scale,
+    required this.enemy,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
       ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5;
+      ..style = PaintingStyle.fill
+      ..strokeWidth = 10;
     final Paint highlightPaint = Paint()
-      ..color = ui.Color.fromARGB(255, 255, 255, 0)
+      ..color = enemy
+          ? ui.Color.fromARGB(255, 127, 127, 0)
+          : ui.Color.fromARGB(255, 255, 255, 0)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 5;
-    const double radius = 100;
+      ..strokeWidth = 10;
+    if (enemy) {
+      paint.colorFilter = ColorFilter.saturation(0.25);
+    }
+    double radius = 120 * scale;
     // final Paint Remover_paint = Paint()
     //   //..color = color
     //   ..blendMode = BlendMode.xor
     //   ..style = PaintingStyle.fill;
 
-    double localRadius = radius * scale;
+    //double localRadius = radius * scale;
     double xFromCenter =
         (pos.dx * field.pixelsPerMeterHorizontal - field.center.dx) * scale;
     double yFromCenter =
@@ -208,9 +239,9 @@ class HubPainter extends CustomPainter {
     // );
 
     if (color != ui.Color.fromARGB(255, 0, 0, 0)) {
-      canvas.drawCircle(markerCenter, localRadius + 5, highlightPaint);
+      canvas.drawCircle(markerCenter, radius * 1.15, highlightPaint);
     }
-    canvas.drawCircle(markerCenter, localRadius, paint);
+    canvas.drawCircle(markerCenter, radius, paint);
     // canvas.drawArc(rect, 0, radians(270), true, paint);
     // paint.color = ui.Color.fromARGB(255, 255, 255, 255);
     // canvas.drawArc(rect, 270, radians(359.99), true, paint);

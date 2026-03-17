@@ -21,6 +21,7 @@ class Mjpeg extends StatefulWidget {
   final BoxFit? fit;
   final bool expandToFit;
   final int quarterTurns;
+  final double rotation;
   final double? width;
   final double? height;
   final WidgetBuilder? loading;
@@ -34,6 +35,7 @@ class Mjpeg extends StatefulWidget {
     this.fit,
     this.expandToFit = false,
     this.quarterTurns = 0,
+    this.rotation = 0,
     this.error,
     this.loading,
     super.key,
@@ -149,17 +151,34 @@ class _MjpegState extends State<Mjpeg> {
             );
           }
 
-          return RotatedBox(
-            quarterTurns: widget.quarterTurns,
-            child: Image.memory(
-              Uint8List.fromList(snapshot.data ?? controller.previousImage!),
-              width: widget.width,
-              height: widget.height,
-              gaplessPlayback: true,
-              fit: widget.fit,
-              scale: (widget.expandToFit) ? 1e-6 : 1.0,
-            ),
+          bool isRotated = widget.rotation != 0 ? true : false;
+
+          Image imagem = Image.memory(
+            Uint8List.fromList(snapshot.data ?? controller.previousImage!),
+            width: widget.width,
+            height: widget.height,
+            gaplessPlayback: true,
+            fit: isRotated ? BoxFit.cover : widget.fit,
+            scale: (widget.expandToFit) ? 1e-6 : 1.0,
           );
+          if (!isRotated) {
+            return RotatedBox(quarterTurns: widget.quarterTurns, child: imagem);
+          } else {
+            return RotatedBox(
+              quarterTurns: widget.quarterTurns,
+              child: ClipOval(child: imagem),
+              // Image.memory(
+              //   Uint8List.fromList(snapshot.data ?? controller.previousImage!),
+              //   width: widget.width,
+              //   height: widget.height,
+              //   gaplessPlayback: true,
+              //   fit: widget.fit,
+              //   scale: (widget.expandToFit) ? 1e-6 : 1.0,
+              //   //colorBlendMode: BlendMode.srcATop,
+              //   //centerSlice: rect,
+              // ),
+            );
+          }
         },
       );
     }
@@ -501,4 +520,38 @@ class MjpegController extends ChangeNotifier {
       }
     }
   }
+}
+
+class CirclePainter extends CustomPainter {
+  final double enabled;
+  final Offset center;
+  final double diameter;
+
+  CirclePainter(
+    this.enabled,
+    this.center,
+    this.diameter,
+  );
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (enabled == 0.0) return;
+    final Paint paint = Paint()
+      //..color = Colors.black
+      ..color = Colors.white
+      ..style = PaintingStyle.fill
+      //..blendMode = BlendMode.dst
+      ..strokeWidth = 10;
+    // final Paint paint_Black = Paint()
+    //   ..color = Colors.black
+    //   //..color = Colors.white
+    //   ..style = PaintingStyle.fill
+    //   //..blendMode = BlendMode.multiply
+    //   ..strokeWidth = 10;
+    //canvas.drawCircle(center, diameter, paint_Black);
+    canvas.drawCircle(center, diameter / 2, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => (enabled == 0);
 }

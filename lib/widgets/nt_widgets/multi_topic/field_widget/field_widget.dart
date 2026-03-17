@@ -135,9 +135,20 @@ class FieldWidget extends NTWidget {
           ];
           String eventName = tryCast(model.eventNameSubscription.value) ?? '';
           int controlData = tryCast(model.controlDataSubscription.value) ?? 32;
-          String gameMessage =
-              tryCast(model.gameSpecificMessageSubscription.value) ?? '';
           bool redAlliance = tryCast(model.allianceTopic.value) ?? true;
+          String gameMessage(bool upper) {
+            String message =
+                tryCast(model.gameSpecificMessageSubscription.value) ??
+                (redAlliance ? 'r' : 'b');
+            if (message == ' ' || emptyString(message)) {
+              message = redAlliance ? 'b' : 'r';
+            }
+            return upper ? message.toUpperCase() : message;
+          }
+
+          // String gameMessage =
+          //     tryCast(model.gameSpecificMessageSubscription.value) ??
+          //     (redAlliance ? 'r' : 'b');
           int matchNumber = tryCast(model.matchNumberSubscription.value) ?? 0;
           int matchType = tryCast(model.matchTypeSubscription.value) ?? 0;
           int replayNumber = tryCast(model.replayNumberSubscription.value) ?? 0;
@@ -168,22 +179,22 @@ class FieldWidget extends NTWidget {
             bool alliance = enemy ? redAlliance : !redAlliance;
             if (alliance) //red
             {
-              if (gameMessage == 'B' &&
+              if (gameMessage(true).contains('B') &&
                   first) //Blue will be disabled first, so we stay on shift 1, 3
               {
                 return true;
-              } else if (gameMessage == 'R' &&
+              } else if (gameMessage(true).contains('R') &&
                   seccond) //red will be disabled first, so we stay on shift 2, 4]
               {
                 return true;
               }
             } else if (!alliance) //blue
             {
-              if (gameMessage == 'R' &&
+              if (gameMessage(true).contains('R') &&
                   first) //Red will be disabled first, so we stay on shift 1, 3
               {
                 return true;
-              } else if (gameMessage == 'B' &&
+              } else if (gameMessage(true).contains('B') &&
                   seccond) //Blue will be disabled first, so we stay on shift 2, 4]
               {
                 return true;
@@ -798,6 +809,7 @@ class FieldWidget extends NTWidget {
                                         ? Offset(4.62, 4.04)
                                         : Offset(11.89, 4.04),
                                     field: model.field,
+                                    enemy: false,
                                     color: (bothHubEnabled || hubEnabled)
                                         ? ((shiftTimerNumber() > 8 ||
                                                   flashHub() ||
@@ -829,6 +841,7 @@ class FieldWidget extends NTWidget {
                                         ? Offset(4.62, 4.04)
                                         : Offset(11.89, 4.04),
                                     field: model.field,
+                                    enemy: true,
                                     color: (bothHubEnabled || !hubEnabled)
                                         ? ((shiftTimerNumber() > 8 ||
                                                   flashHub() ||
@@ -852,7 +865,7 @@ class FieldWidget extends NTWidget {
                                   ),
                                 ),
                                 CustomPaint(
-                                  //aliance paint
+                                  //aliance square paint
                                   size: imageDisplaySize,
                                   painter: AlliancePainter(
                                     center: imageDisplaySize.toOffset / 2,
@@ -862,6 +875,14 @@ class FieldWidget extends NTWidget {
                                         : Color.fromARGB(255, 255, 0, 0),
                                     width: imageDisplaySize.width,
                                     height: imageDisplaySize.height,
+                                    status: emergencyStopped
+                                        ? 2
+                                        : _flagMatches(
+                                            controlData,
+                                            ENABLED_FLAG,
+                                          )
+                                        ? 0
+                                        : 1,
                                   ),
                                 ),
                                 if (model.showTrajectories)
@@ -1061,8 +1082,16 @@ class FieldWidget extends NTWidget {
                                             // worldCam.y += worldCam.y * distCam * sin(robotTheta-pi/2);
 
                                             // rotate/translate into field coordinates using robot pose
-                                            double cosR = cos(robotTheta);
-                                            double sinR = sin(robotTheta);
+                                            double cosR = cos(
+                                              redAlliance
+                                                  ? robotTheta + pi
+                                                  : robotTheta,
+                                            );
+                                            double sinR = sin(
+                                              redAlliance
+                                                  ? robotTheta + pi
+                                                  : robotTheta,
+                                            );
                                             worldCam.x *= (cosR * distCam);
                                             worldCam.y *= (sinR * distCam);
                                             // worldCam.x *= distCam;
@@ -1166,11 +1195,6 @@ class FieldWidget extends NTWidget {
                                 SizedBox(
                                   width: imageDisplaySize.width * 0.95,
                                   height: imageDisplaySize.height * 0.95,
-                                  // child: Positioned(
-                                  //   top: 0,
-                                  //   left: 0,
-                                  //   right: 0,
-                                  // child: ClipRect(
                                   child: Center(
                                     child: Column(
                                       children: [
@@ -1207,20 +1231,19 @@ class FieldWidget extends NTWidget {
                     ),
                   ),
                 ),
-
-                Positioned(
-                  top: 2,
-                  left: 0,
-                  right: 0,
+                SizedBox(
+                  width: imageDisplaySize.width * 0.95,
+                  height: imageDisplaySize.height * 0.95,
                   child: Center(
                     child: Column(
                       children: [
+                        //const Spacer(flex: 1),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             matchDisplayWidget,
                             Container(
-                              // alignment: Alignment.center,
+                              alignment: Alignment.center,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 8.0,
                                 vertical: 2.0,
@@ -1233,7 +1256,6 @@ class FieldWidget extends NTWidget {
                               ),
                               //child: matchDisplayWidget,
                               child: Text(
-                                //'X: ${robotX.toStringAsFixed(2)}, Y: ${robotY.toStringAsFixed(2)}, Heading: ${degrees(robotTheta).toStringAsFixed(2)}°',
                                 'X: ${formatDouble(robotX, 2, 2)}, Y: ${formatDouble(robotY, 2, 2)}, Heading: ${formatDouble(degrees(robotTheta), 2, 3)}°',
                                 style:
                                     Theme.of(
@@ -1244,46 +1266,46 @@ class FieldWidget extends NTWidget {
                                     ),
                               ),
                             ),
-                            if (!emptyString(gameMessage))
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8.0,
-                                  vertical: 2.0,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: gameMessage == 'R'
-                                      ? const Color.fromARGB(
-                                          255,
-                                          255,
-                                          0,
-                                          0,
-                                        ).withValues(alpha: 0.5 * 255)
-                                      : gameMessage == 'B'
-                                      ? const Color.fromARGB(
-                                          255,
-                                          0,
-                                          0,
-                                          255,
-                                        ).withValues(alpha: 0.5 * 255)
-                                      : const Color.fromARGB(
-                                          255,
-                                          255,
-                                          125,
-                                          0,
-                                        ).withValues(alpha: 0.5 * 255),
-                                  borderRadius: BorderRadius.circular(4.0),
-                                ),
-                                child: Text(
-                                  gameMessage,
-                                  style:
-                                      Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall?.copyWith(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                      ),
-                                ),
+                            //if (gameMessage(false) != '')
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 2.0,
                               ),
+                              decoration: BoxDecoration(
+                                color: gameMessage(true).contains('R')
+                                    ? const Color.fromARGB(
+                                        255,
+                                        255,
+                                        0,
+                                        0,
+                                      ).withValues(alpha: 0.5 * 255)
+                                    : gameMessage(true).contains('B')
+                                    ? const Color.fromARGB(
+                                        255,
+                                        0,
+                                        0,
+                                        255,
+                                      ).withValues(alpha: 0.5 * 255)
+                                    : const Color.fromARGB(
+                                        255,
+                                        255,
+                                        125,
+                                        0,
+                                      ).withValues(alpha: 0.5 * 255),
+                                borderRadius: BorderRadius.circular(4.0),
+                              ),
+                              child: Text(
+                                gameMessage(false),
+                                style:
+                                    Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall?.copyWith(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                    ),
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -1334,80 +1356,80 @@ class FieldWidget extends NTWidget {
   }
 }
 
-class TrianglePainter extends CustomPainter {
-  final Color strokeColor;
-  final PaintingStyle paintingStyle;
-  final double strokeWidth;
+// class TrianglePainter extends CustomPainter {
+//   final Color strokeColor;
+//   final PaintingStyle paintingStyle;
+//   final double strokeWidth;
 
-  TrianglePainter({
-    this.strokeColor = Colors.white,
-    this.strokeWidth = 3,
-    this.paintingStyle = PaintingStyle.stroke,
-  });
+//   TrianglePainter({
+//     this.strokeColor = Colors.white,
+//     this.strokeWidth = 3,
+//     this.paintingStyle = PaintingStyle.stroke,
+//   });
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()
-      ..color = strokeColor
-      ..strokeWidth = strokeWidth
-      ..style = paintingStyle;
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     Paint paint = Paint()
+//       ..color = strokeColor
+//       ..strokeWidth = strokeWidth
+//       ..style = paintingStyle;
 
-    canvas.drawPath(getTrianglePath(size.width, size.height), paint);
-  }
+//     canvas.drawPath(getTrianglePath(size.width, size.height), paint);
+//   }
 
-  Path getTrianglePath(double x, double y) => Path()
-    ..moveTo(0, 0)
-    ..lineTo(x, y / 2)
-    ..lineTo(0, y)
-    ..lineTo(0, 0)
-    ..lineTo(x, y / 2);
+//   Path getTrianglePath(double x, double y) => Path()
+//     ..moveTo(0, 0)
+//     ..lineTo(x, y / 2)
+//     ..lineTo(0, y)
+//     ..lineTo(0, 0)
+//     ..lineTo(x, y / 2);
 
-  @override
-  bool shouldRepaint(TrianglePainter oldDelegate) =>
-      oldDelegate.strokeColor != strokeColor ||
-      oldDelegate.paintingStyle != paintingStyle ||
-      oldDelegate.strokeWidth != strokeWidth;
-}
+//   @override
+//   bool shouldRepaint(TrianglePainter oldDelegate) =>
+//       oldDelegate.strokeColor != strokeColor ||
+//       oldDelegate.paintingStyle != paintingStyle ||
+//       oldDelegate.strokeWidth != strokeWidth;
+// }
 
-class TrajectoryPainter extends CustomPainter {
-  final Offset center;
-  final List<Offset> points;
-  final double strokeWidth;
-  final Color color;
+// class TrajectoryPainter extends CustomPainter {
+//   final Offset center;
+//   final List<Offset> points;
+//   final double strokeWidth;
+//   final Color color;
 
-  TrajectoryPainter({
-    required this.center,
-    required this.points,
-    required this.strokeWidth,
-    this.color = Colors.white,
-  });
+//   TrajectoryPainter({
+//     required this.center,
+//     required this.points,
+//     required this.strokeWidth,
+//     this.color = Colors.white,
+//   });
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (points.isEmpty) {
-      return;
-    }
-    Paint trajectoryPaint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    Path trajectoryPath = Path();
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     if (points.isEmpty) {
+//       return;
+//     }
+//     Paint trajectoryPaint = Paint()
+//       ..color = color
+//       ..strokeWidth = strokeWidth
+//       ..style = PaintingStyle.stroke
+//       ..strokeCap = StrokeCap.round;
+//     Path trajectoryPath = Path();
 
-    trajectoryPath.moveTo(points[0].dx + center.dx, points[0].dy + center.dy);
+//     trajectoryPath.moveTo(points[0].dx + center.dx, points[0].dy + center.dy);
 
-    for (Offset point in points) {
-      trajectoryPath.lineTo(point.dx + center.dx, point.dy + center.dy);
-    }
-    canvas.drawPath(trajectoryPath, trajectoryPaint);
-  }
+//     for (Offset point in points) {
+//       trajectoryPath.lineTo(point.dx + center.dx, point.dy + center.dy);
+//     }
+//     canvas.drawPath(trajectoryPath, trajectoryPaint);
+//   }
 
-  @override
-  bool shouldRepaint(TrajectoryPainter oldDelegate) =>
-      oldDelegate.points != points ||
-      oldDelegate.strokeWidth != strokeWidth ||
-      oldDelegate.color != color;
-}
+//   @override
+//   bool shouldRepaint(TrajectoryPainter oldDelegate) =>
+//       oldDelegate.points != points ||
+//       oldDelegate.strokeWidth != strokeWidth ||
+//       oldDelegate.color != color;
+// }
 
 class _BlackAndYellowStripes extends CustomPainter {
   @override

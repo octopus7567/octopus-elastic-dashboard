@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -31,6 +32,7 @@ class CameraStreamModel extends MultiTopicNTWidgetModel {
   int? fps;
   Size? resolution;
   int _rotationTurns = 0;
+  double _rotation = 0;
   bool crosshairEnabled = false;
   int crosshairX = 0;
   int crosshairY = 0;
@@ -41,6 +43,13 @@ class CameraStreamModel extends MultiTopicNTWidgetModel {
   bool crosshairCentered = false;
 
   int get rotationTurns => _rotationTurns;
+
+  double get rotation => _rotation;
+
+  set rotation(double value) {
+    _rotation = value;
+    notifyListeners();
+  }
 
   set rotationTurns(int value) {
     _rotationTurns = value;
@@ -97,6 +106,7 @@ class CameraStreamModel extends MultiTopicNTWidgetModel {
     fps = tryCast(jsonData['fps']);
     crosshairEnabled = tryCast(jsonData['crosshair_enabled']) ?? false;
     _rotationTurns = tryCast(jsonData['rotation_turns']) ?? 0;
+    _rotation = tryCast(jsonData['rotation']) ?? 0;
     crosshairWidth = tryCast(jsonData['crosshair_width']) ?? 25;
     crosshairHeight = tryCast(jsonData['crosshair_height']) ?? 25;
     crosshairThickness = tryCast(jsonData['crosshair_thickness']) ?? 2;
@@ -146,6 +156,7 @@ class CameraStreamModel extends MultiTopicNTWidgetModel {
   Map<String, dynamic> toJson() => {
     ...super.toJson(),
     'rotation_turns': _rotationTurns,
+    'rotation': _rotation,
     'crosshair_enabled': crosshairEnabled,
     'crosshair_width': crosshairWidth,
     'crosshair_height': crosshairHeight,
@@ -321,6 +332,25 @@ class CameraStreamModel extends MultiTopicNTWidgetModel {
           ),
         ),
       ],
+    ),
+    StatefulBuilder(
+      builder: (context, setState) => Row(
+        children: [
+          const Text('Rotate by:'),
+          Slider(
+            value: rotation,
+            min: -45.0,
+            max: 45.0,
+            divisions: 90,
+            label: '$rotation',
+            onChanged: (value) {
+              setState(() {
+                rotation = value;
+              });
+            },
+          ),
+        ],
+      ),
     ),
     //Camera Crosshair
     StatefulBuilder(
@@ -605,11 +635,15 @@ class CameraStreamWidget extends NTWidget {
                         model.crosshairColor,
                         model.crosshairCentered,
                       ),
-                      child: Mjpeg(
-                        controller: model.controller!,
-                        fit: BoxFit.contain,
-                        expandToFit: true,
-                        quarterTurns: model.rotationTurns,
+                      child: Transform.rotate(
+                        angle: (pi / 180) * (model.rotation),
+                        child: Mjpeg(
+                          controller: model.controller!,
+                          fit: BoxFit.contain,
+                          expandToFit: true,
+                          quarterTurns: model.rotationTurns,
+                          rotation: model.rotation,
+                        ),
                       ),
                     ),
                   ],

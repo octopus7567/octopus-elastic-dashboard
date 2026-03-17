@@ -124,6 +124,7 @@ class NTWidgetRegistry {
       model: MatchTimeModel.new,
       widget: MatchTimeWidget.new,
       fromJson: MatchTimeModel.fromJson,
+      minHeight: _normalSize * 1.45,
     );
 
     registerSingleTopic(
@@ -417,7 +418,7 @@ class NTWidgetRegistry {
     registerWithoutModel(
       name: LargeTextDisplay.widgetType,
       widget: LargeTextDisplay.new,
-      minHeight: _normalSize * 0.8,
+      minHeight: _normalSize * 1.7, //1.35,
     );
 
     registerWithoutModel(

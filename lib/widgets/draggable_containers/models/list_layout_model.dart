@@ -389,8 +389,9 @@ class ListLayoutModel extends LayoutContainerModel {
       );
 
       Widget containerContent;
-
-      switch (labelPosition.toUpperCase()) {
+      String pos = labelPosition.toUpperCase();
+      if (widget.title == ' ') pos = 'HIDDEN';
+      switch (pos) {
         case 'LEFT':
           containerContent = Row(
             mainAxisAlignment: MainAxisAlignment.start,
